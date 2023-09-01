@@ -114,5 +114,13 @@ namespace SAS.Utilities.TagSystem
             var binding = Array.Find(m_Bindings, ele => ele.InterfaceType.Equals(type) && ele.Tag == tag);
             return binding?.CreateInstance(this);
         }
+
+        public void CreateAllInstance()
+        {
+            foreach (var binding in m_Bindings)
+            {
+                Add(binding.InterfaceType, binding.CreateInstance(this), binding.Tag);
+            }
+        }
     }
 }
