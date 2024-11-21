@@ -28,7 +28,7 @@ namespace SAS.Utilities.TagSystem
 
                 if (type.IsSubclassOf(typeof(MonoBehaviour)))
                 {
-                    var results = GameObject.FindObjectsOfType(type);
+                    var results = GameObject.FindObjectsByType(type, FindObjectsSortMode.None);
                     foreach (var result in results)
                     {
 
