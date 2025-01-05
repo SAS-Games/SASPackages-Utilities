@@ -4,20 +4,20 @@ namespace SAS.Utilities
 {
     public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     {
-        private static T mInstance = null;
+        private static T _Instance = null;
 
         public bool _PersistentOnSceneChange = false;
 
         protected Singleton() { }
 
-        public static T pInstance
+        public static T Instance
         {
             get
             {
-                if (mInstance == null)
-                    mInstance = FindFirstObjectByType<T>();
+                if (_Instance == null)
+                    _Instance = FindFirstObjectByType<T>();
 
-                return mInstance;
+                return _Instance;
             }
         }
 
@@ -39,8 +39,8 @@ namespace SAS.Utilities
 
         protected virtual void OnDestroy()
         {
-            if (this == mInstance)
-                mInstance = null;
+            if (this == _Instance)
+                _Instance = null;
         }
     }
 }

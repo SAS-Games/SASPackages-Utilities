@@ -9,9 +9,10 @@
                     "name": "Toggle Console",
                     "type": "Button",
                     "id": "ac595bc4-ff20-4a3e-bff1-c9eb1258f40c",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [

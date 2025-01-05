@@ -1,5 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace SAS.Utilities.DeveloperConsole
@@ -81,6 +82,56 @@ namespace SAS.Utilities.DeveloperConsole
 
             var suggestions = DeveloperConsole.GetCommandSuggestion(input);
             m_SuggestionsText.text = string.Join("\n", suggestions);
+        }
+
+        private float touchDuration = 0f;
+        private const float requiredDuration = 5f;
+
+        void Update()
+        {
+            if (Touchscreen.current != null)
+            {
+                // Count active touches
+                int activeTouches = 0;
+                foreach (var touch in Touchscreen.current.touches)
+                {
+                    if (touch.press.isPressed)
+                    {
+                        activeTouches++;
+                    }
+                }
+
+                // Check if 4 fingers are pressed
+                if (activeTouches >= 4)
+                {
+                    touchDuration += Time.deltaTime;
+
+                    if (touchDuration >= requiredDuration)
+                    {
+                        if (m_UiCanvas.activeSelf)
+                        {
+                            if (m_InputField != null)
+                                Time.timeScale = pausedTimeScale;
+                            m_UiCanvas.SetActive(false);
+                        }
+                        else
+                        {
+                            if (m_PauseOnOpen)
+                            {
+                                pausedTimeScale = Time.timeScale;
+                                Time.timeScale = 0;
+                            }
+                            m_UiCanvas.SetActive(true);
+                            m_InputField.ActivateInputField();
+                        }
+                        touchDuration = 0f; // Reset to prevent multiple triggers
+                    }
+                }
+                else
+                {
+                    touchDuration = 0f; // Reset if less than 4 fingers
+                }
+            }
         }
     }
 }

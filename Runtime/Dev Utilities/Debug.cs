@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace SAS
@@ -15,39 +16,67 @@ namespace SAS
 
     public static class Debug
     {
-        private static LogLevel _logLevel = (LogLevel)(1);
-        private static HashSet<string> mAllowedTags = new HashSet<string>();
+        const string DEBUG = "DEBUG";
+        private static LogLevel LogLevel = (LogLevel)(1);
+        private static HashSet<string> AllowedTags = new HashSet<string>();
 
         public static void SetLogLevel(LogLevel level)
         {
-            _logLevel = level;
+            LogLevel = level;
         }
 
         public static void SetAllowedTags(IEnumerable<string> tags)
         {
-            mAllowedTags.Clear();
-            mAllowedTags.UnionWith(tags);
+            AllowedTags.Clear();
+            AllowedTags.UnionWith(tags);
         }
 
-        public static void Log(object message, string tag = null, LogLevel level = LogLevel.Info)
+        [Conditional(DEBUG)]
+        public static void Log(object message, string tag = null)
         {
-            Log(message?.ToString() ?? "null", tag, level);
+            Log(message?.ToString() ?? "null", tag, LogLevel.Info);
         }
 
-        public static void Log(string message, string tag = null, LogLevel level = LogLevel.Info)
+        [Conditional(DEBUG)]
+        public static void Log(string message, string tag = null)
+        {
+            Log(message, tag, LogLevel.Info);
+        }
+
+        [Conditional(DEBUG)]
+        private static void Log(string message, string tag, LogLevel level)
         {
             if (CanLog(level) && TagPassesFilter(tag))
             {
                 string logMessage = $"{level}: {message}";
-                UnityEngine.Debug.Log(logMessage);
+                if (level == LogLevel.Info)
+                    UnityEngine.Debug.Log(logMessage);
+                else if (level == LogLevel.Warning)
+                    UnityEngine.Debug.LogWarning(logMessage);
+                else if (level == LogLevel.Error)
+                    UnityEngine.Debug.LogError(logMessage);
             }
         }
 
+        [Conditional(DEBUG)]
+        public static void LogWarning(object message, string tag = null)
+        {
+            LogWarning(message?.ToString() ?? "null", tag);
+        }
+
+        [Conditional(DEBUG)]
         public static void LogWarning(string message, string tag = null)
         {
             Log(message, tag, LogLevel.Warning);
         }
 
+        [Conditional(DEBUG)]
+        public static void LogError(object message, string tag = null)
+        {
+            LogError(message?.ToString() ?? "null", tag);
+        }
+
+        [Conditional(DEBUG)]
         public static void LogError(string message, string tag = null)
         {
             Log(message, tag, LogLevel.Error);
@@ -60,14 +89,14 @@ namespace SAS
 
         public static bool CanLog(LogLevel level)
         {
-            return _logLevel.HasFlag(level);
+            return LogLevel.HasFlag(level);
         }
 
 
         private static bool TagPassesFilter(string tag)
         {
             // If no allowed tags or the tag is present in the allowed tags, the filter passes
-            return mAllowedTags.Count == 0 || mAllowedTags.Contains(tag);
+            return AllowedTags.Count == 0 || AllowedTags.Contains(tag);
         }
 
         public static void DrawRay(Vector3 rayOrigin, Vector3 vector3, Color color)
