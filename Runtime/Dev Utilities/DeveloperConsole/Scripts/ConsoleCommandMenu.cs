@@ -45,7 +45,8 @@ namespace SAS.Utilities.DeveloperConsole
                 transform.gameObject.SetActive(false);
             }
 
-            EventSystem.current.firstSelectedGameObject = _eventSystemLastSelectedObject;
+            if (EventSystem.current != null)
+                EventSystem.current.firstSelectedGameObject = _eventSystemLastSelectedObject;
         }
     }
 }
