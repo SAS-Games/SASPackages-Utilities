@@ -20,7 +20,7 @@ namespace SAS.Utilities.DeveloperConsole
         private float pausedTimeScale;
         private DeveloperConsole developerConsole;
 
-        private DeveloperConsole DeveloperConsole
+        internal DeveloperConsole DeveloperConsole
         {
             get
             {

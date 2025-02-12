@@ -8,22 +8,22 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private GameObject m_FpsPrefab;
 
         private GameObject _fps;
+        private bool isVisible = false;
 
         public override string HelpText => "Usage: FPS [true/false]. Show/Hide FPS UI.";
 
-        public override bool Process(string[] args, DeveloperConsoleBehaviour developerConsole)
+        public override bool Process(DeveloperConsoleBehaviour developerConsole, string[] args)
         {
-            if (args.Length == 0)
-                return false;
-            if (bool.TryParse(args[0], out var show))
-            {
-                if (_fps == null)
-                    _fps = Instantiate(m_FpsPrefab);
-                _fps.SetActive(show);
+            if (args == null || args.Length == 0)
+                isVisible = !isVisible;
+            else if (bool.TryParse(args[0], out isVisible)) { }
+            
+            if (_fps == null)
+                _fps = Instantiate(m_FpsPrefab);
 
-                return true;
-            }
-            return false;
+            _fps.SetActive(isVisible);
+
+            return true;
         }
     }
 }

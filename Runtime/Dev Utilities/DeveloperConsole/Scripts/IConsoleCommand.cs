@@ -4,6 +4,6 @@
     {
         string CommandWord { get; }
         string HelpText { get; }
-        bool Process(string[] args, DeveloperConsoleBehaviour developerConsole);
+        bool Process(DeveloperConsoleBehaviour developerConsole, string[] args = null);
     }
 }

@@ -8,6 +8,6 @@ namespace SAS.Utilities.DeveloperConsole
         public abstract string HelpText { get; }
         public string CommandWord => commandWord;
 
-        public abstract bool Process(string[] args, DeveloperConsoleBehaviour developerConsole);
+        public abstract bool Process(DeveloperConsoleBehaviour developerConsole, string[] args  = null);
     }
 }

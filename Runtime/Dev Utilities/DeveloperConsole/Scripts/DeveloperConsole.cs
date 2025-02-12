@@ -10,6 +10,8 @@ namespace SAS.Utilities.DeveloperConsole
         private readonly string prefix;
         private readonly IEnumerable<IConsoleCommand> commands;
 
+        public IEnumerable<IConsoleCommand> Commands => commands;
+
         public DeveloperConsole(string prefix, IEnumerable<IConsoleCommand> commands)
         {
             this.prefix = prefix;
@@ -28,7 +30,7 @@ namespace SAS.Utilities.DeveloperConsole
             if (inputValue.Equals("clear", StringComparison.OrdinalIgnoreCase))
             {
                 developerConsole.DisplayHelpText("");
-                return; 
+                return;
             }
             // If the input ends with "help", show the command's help text
             if (args.Length > 0 && args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
@@ -108,7 +110,7 @@ namespace SAS.Utilities.DeveloperConsole
                     continue;
                 }
 
-                if (command.Process(args, developerConsole))
+                if (command.Process(developerConsole, args))
                 {
                     return;
                 }
