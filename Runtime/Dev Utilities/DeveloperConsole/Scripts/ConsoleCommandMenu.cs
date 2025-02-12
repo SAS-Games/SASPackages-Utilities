@@ -33,8 +33,8 @@ namespace SAS.Utilities.DeveloperConsole
                 commandButton.Init(command, _developerConsoleBehaviour);
             }
 
-            _eventSystemLastSelectedObject = EventSystem.current.firstSelectedGameObject;
-            EventSystem.current.firstSelectedGameObject = m_Content.GetChild(0).gameObject;
+            _eventSystemLastSelectedObject = EventSystem.current.currentSelectedGameObject;
+            EventSystem.current.SetSelectedGameObject(m_Content.GetChild(0).gameObject);
         }
 
         void OnDisable()
@@ -46,7 +46,7 @@ namespace SAS.Utilities.DeveloperConsole
             }
 
             if (EventSystem.current != null)
-                EventSystem.current.firstSelectedGameObject = _eventSystemLastSelectedObject;
+                EventSystem.current.SetSelectedGameObject(_eventSystemLastSelectedObject);
         }
     }
 }
