@@ -26,6 +26,17 @@
                     "action": "Toggle Console",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ade72db6-7e3f-4d3d-8b28-4d74ea0623df",
+                    "path": "<Gamepad>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";GamePad",
+                    "action": "Toggle Console",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }
@@ -46,6 +57,11 @@
                     "isOR": false
                 }
             ]
+        },
+        {
+            "name": "GamePad",
+            "bindingGroup": "GamePad",
+            "devices": []
         }
     ]
 }

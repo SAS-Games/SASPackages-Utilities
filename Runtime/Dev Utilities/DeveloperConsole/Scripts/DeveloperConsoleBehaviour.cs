@@ -1,6 +1,9 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.UIElements.InputSystem;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace SAS.Utilities.DeveloperConsole
@@ -16,6 +19,7 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private TMP_Text m_SuggestionsText = null;
         [SerializeField] private TMP_Text m_HelpText = null;
         [SerializeField] private bool m_PauseOnOpen = false;
+        [SerializeField] private InputActionReference m_ToggleInputActionReference;
 
         private float pausedTimeScale;
         private DeveloperConsole developerConsole;
@@ -35,6 +39,9 @@ namespace SAS.Utilities.DeveloperConsole
 
             if (m_InputField != null)
                 m_InputField.onValueChanged.AddListener(OnInputChanged);
+
+            m_ToggleInputActionReference.action.performed += Toggle;
+            m_ToggleInputActionReference.action.Enable();
         }
 
         public void Toggle(CallbackContext context)
@@ -55,7 +62,6 @@ namespace SAS.Utilities.DeveloperConsole
                     Time.timeScale = 0;
                 }
                 m_UiCanvas.SetActive(true);
-                m_InputField.ActivateInputField();
             }
         }
 
@@ -122,7 +128,7 @@ namespace SAS.Utilities.DeveloperConsole
                                 Time.timeScale = 0;
                             }
                             m_UiCanvas.SetActive(true);
-                            m_InputField.ActivateInputField();
+                            // m_InputField.ActivateInputField();
                         }
                         touchDuration = 0f; // Reset to prevent multiple triggers
                     }
@@ -132,6 +138,11 @@ namespace SAS.Utilities.DeveloperConsole
                     touchDuration = 0f; // Reset if less than 4 fingers
                 }
             }
+        }
+
+        private void OnDestroy()
+        {
+            m_ToggleInputActionReference.action.Disable();
         }
     }
 }
