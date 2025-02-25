@@ -5,6 +5,20 @@ using UnityEngine;
 
 namespace SAS.Utilities.TagSystem
 {
+    public enum PlatformType
+    {
+        Windows,
+        MacOS,
+        Linux,
+        Android,
+        iOS,
+        PS4,
+        PS5,
+        XboxOne,
+        XboxSeries,
+        Switch
+    }
+
     public interface IBindable
     {
         void OnInstanceCreated();
@@ -19,10 +33,19 @@ namespace SAS.Utilities.TagSystem
             [SerializeField] private string m_Interface;
             [SerializeField] private string m_Type;
             [SerializeField] private Tag m_Tag;
+            [SerializeField] private PlatformType[] m_ExcludedPlatforms;
+
             public Type InterfaceType => Type.GetType(m_Interface);
             public Tag Tag => m_Tag;
             public object CreateInstance(IContextBinder contextBinder)
             {
+                // Check if the current platform is excluded
+                if (IsPlatformExcluded())
+                {
+                    Debug.Log($"Skipping binding of type {m_Type} on the current platform.");
+                    return null;
+                }
+
                 object instance = default;
                 Type type = Type.GetType(m_Type);
 
@@ -31,7 +54,6 @@ namespace SAS.Utilities.TagSystem
                     var results = GameObject.FindObjectsByType(type, FindObjectsSortMode.None);
                     foreach (var result in results)
                     {
-
                         instance = ((Component)result).GetComponent(type, Tag);
                         if (instance != null)
                             break;
@@ -40,11 +62,64 @@ namespace SAS.Utilities.TagSystem
                         Debug.LogError($"No GameObject having component attached of the type:  {m_Type} with  tag: {m_Tag} found");
                 }
                 else
+                {
                     instance = Activator.CreateInstance(Type.GetType(m_Type), new[] { contextBinder });
-
+                }
 
                 InvokeInjectionEvent((IBindable)instance);
                 return instance;
+            }
+
+            private bool IsPlatformExcluded()
+            {
+                foreach (var platform in m_ExcludedPlatforms)
+                {
+                    switch (platform)
+                    {
+                        case PlatformType.Windows:
+                            if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor)
+                                return true;
+                            break;
+                        case PlatformType.MacOS:
+                            if (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXEditor)
+                                return true;
+                            break;
+                        case PlatformType.Linux:
+                            if (Application.platform == RuntimePlatform.LinuxPlayer || Application.platform == RuntimePlatform.LinuxEditor)
+                                return true;
+                            break;
+                        case PlatformType.Android:
+                            if (Application.platform == RuntimePlatform.Android)
+                                return true;
+                            break;
+                        case PlatformType.iOS:
+                            if (Application.platform == RuntimePlatform.IPhonePlayer)
+                                return true;
+                            break;
+                        case PlatformType.PS4:
+                            if (Application.platform == RuntimePlatform.PS4)
+                                return true;
+                            break;
+                        case PlatformType.PS5:
+                            if (Application.platform == RuntimePlatform.PS5)
+                                return true;
+                            break;
+                        case PlatformType.XboxOne:
+                            if (Application.platform == RuntimePlatform.XboxOne)
+                                return true;
+                            break;
+                        case PlatformType.XboxSeries:
+#if UNITY_GAMECORE_XBOX_SERIES
+                        return true;
+#endif
+                            break;
+                        case PlatformType.Switch:
+                            if (Application.platform == RuntimePlatform.Switch)
+                                return true;
+                            break;
+                    }
+                }
+                return false;
             }
 
             private void InvokeInjectionEvent(IBindable bindable)
