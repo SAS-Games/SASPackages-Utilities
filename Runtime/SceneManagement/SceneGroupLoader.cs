@@ -18,6 +18,7 @@ public class SceneGroupLoader : MonoBehaviour
     {
         this.InjectFieldBindings();
         _loadingScreen = m_LoadingScreenBehaviour as ILoadingScreen;
+        await Awaitable.WaitForSecondsAsync(0.5f);
         if (m_LoadOnStart)
             await LoadSceneGroup();
     }

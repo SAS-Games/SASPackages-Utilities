@@ -3,6 +3,10 @@
   "version": "1.2.1",
   "displayName": "SAS Utilities",
   "unity": "2018.4",
+  "author": {
+    "name": "SAS",
+    "email": "sonkar.abhi86@gmail.com"
+  },
   "hideInEditor": true,
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.1.0"
