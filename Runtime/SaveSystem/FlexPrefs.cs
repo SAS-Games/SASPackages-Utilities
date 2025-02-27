@@ -70,24 +70,27 @@ public static class FlexPrefs
     /// Saves the current state of the cache to the persistent storage asynchronously.
     /// Handles concurrent save requests gracefully by queuing them.
     /// </summary>
-    public static async void Save()
+    public static async Task Save()
     {
         Debug.Assert(_saveSystem != null, "FlexPrefs not initialized. Call FlexPrefs.Initialize() first.");
 
-        if (_isSaving)
-        {
+        while (_isSaving)
             await _saveTaskCompletion.Task;
-        }
 
-        if (!_isDirty) return; //todo: need to revisit this
+        if (!_isDirty)
+            return;
 
         _isSaving = true;
         _saveTaskCompletion = new TaskCompletionSource<bool>();
 
         try
         {
-            await _saveSystem.Save(_userId, DirName, FileName, _cache);
-            _isDirty = false;
+            do
+            {
+                _isDirty = false;
+                await _saveSystem.Save(_userId, DirName, FileName, _cache);
+                // Re-check if new changes occurred during the save process
+            } while (_isDirty);
         }
         finally
         {
@@ -95,6 +98,7 @@ public static class FlexPrefs
             _saveTaskCompletion.SetResult(true);
         }
     }
+
 
     /// <summary>
     /// Checks if a specific key exists in the cache.
