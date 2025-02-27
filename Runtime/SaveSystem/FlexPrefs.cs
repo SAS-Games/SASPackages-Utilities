@@ -19,7 +19,7 @@ public static class FlexPrefs
     /// </summary>
     /// <param name="saveSystem">The save system to use for data persistence.</param>
     /// <param name="userId">The user identifier for saving/loading data. Defaults to 0.</param>
-    public static async Task Initialize(ISaveSystem saveSystem, int userId = 0)
+    public static async Task Initialize(ISaveSystem saveSystem, int userId)
     {
         _saveSystem = saveSystem;
         _userId = userId;

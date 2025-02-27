@@ -1,15 +1,15 @@
 using SAS.Utilities.TagSystem;
 using UnityEngine;
-using Debug = SAS.Debug;
 
 public class FlexPrefsIniter : MonoBehaviour
 {
     [Inject(Tag.FlexPrefs)] ISaveSystem _flexPrefsSaveSytem;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    [Inject] IUserModel _userModel;
+
     async void Start()
     {
         this.InjectFieldBindings();
-        await FlexPrefs.Initialize(_flexPrefsSaveSytem);
+        await FlexPrefs.Initialize(_flexPrefsSaveSytem,_userModel.GetActiveUserId());
     }
 
     private void OnApplicationQuit()
