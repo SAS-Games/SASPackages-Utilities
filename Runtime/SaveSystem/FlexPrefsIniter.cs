@@ -21,7 +21,7 @@ public class FlexPrefsIniter : MonoBehaviour
     private void OnApplicationFocus(bool focus)
     {
         if (!focus)
-            _saveSystem.Save(GetUserID(), DirName, FileName, _abilityData);
+           FlexPrefs.Save();
     }
 #endif
 }
