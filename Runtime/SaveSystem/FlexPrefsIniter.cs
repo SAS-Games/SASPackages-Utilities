@@ -10,18 +10,18 @@ public class FlexPrefsIniter : MonoBehaviour
     {
         this.InjectFieldBindings();
         await FlexPrefs.Initialize(_flexPrefsSaveSytem);
-        Debug.Log("FlexPrefs has been initialized");
-        if(FlexPrefs.HasKey("Name"))
-        {
-            Debug.Log(FlexPrefs.Get<string>("Name", "Abhishek"));
-        }
-        else
-            FlexPrefs.Set<string>("Name", "Abhishek");
-
     }
 
     private void OnApplicationQuit()
     {
         FlexPrefs.Save();
     }
+
+#if UNITY_PS5
+    private void OnApplicationFocus(bool focus)
+    {
+        if (!focus)
+            _saveSystem.Save(GetUserID(), DirName, FileName, _abilityData);
+    }
+#endif
 }

@@ -17,11 +17,6 @@ public class JsonFileSaveSystem : ISaveSystem
 
     }
 
-    async Task<T> ISaveSystem.Load<T>(int userId, string fileName)
-    {
-        return await ((ISaveSystem)this).Load<T>(userId, "Saves", fileName);
-    }
-
     async Task<T> ISaveSystem.Load<T>(int userId, string dirName, string fileName)
     {
         var filePath = Path.Combine(rootDir, dirName, userId.ToString(), fileName + ".json");
@@ -49,11 +44,6 @@ public class JsonFileSaveSystem : ISaveSystem
 
         Debug.LogWarning($"File not found or empty: {filePath}");
         return new T(); // This now works because of the where T : new() constraint
-    }
-
-    async Task ISaveSystem.Save<T>(int userId, string fileName, T data)
-    {
-        await ((ISaveSystem)this).Save(userId, "Saves", fileName, data);
     }
 
     async Task ISaveSystem.Save<T>(int userId, string dirName, string fileName, T data)

@@ -7,10 +7,11 @@ public static class FlexPrefs
     private static ISaveSystem _saveSystem;
     private static int _userId;
     private static Dictionary<string, object> _cache = new Dictionary<string, object>();
-    private static readonly string fileName = "FlexPrefsData";
     private static volatile bool _isSaving = false;
     private static bool _isDirty = true;
     private static TaskCompletionSource<bool> _saveTaskCompletion = new TaskCompletionSource<bool>();
+    private const string FileName = "FlexPrefsData";
+    private const string DirName = "FlexPrefsDataDir";
 
     /// <summary>
     /// Initializes FlexPrefs with the specified save system and user ID.
@@ -33,7 +34,7 @@ public static class FlexPrefs
     /// The result contains the loaded data or an empty dictionary if no data is found.</returns>
     private static async Task<Dictionary<string, object>> LoadData()
     {
-        var data = await _saveSystem.Load<Dictionary<string, object>>(_userId, fileName);
+        var data = await _saveSystem.Load<Dictionary<string, object>>(_userId, DirName, FileName);
         return data ?? new Dictionary<string, object>();
     }
 
@@ -85,7 +86,7 @@ public static class FlexPrefs
 
         try
         {
-            await _saveSystem.Save(_userId, fileName, _cache);
+            await _saveSystem.Save(_userId, DirName, FileName, _cache);
             _isDirty = false;
         }
         finally
