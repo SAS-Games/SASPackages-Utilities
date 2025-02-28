@@ -9,19 +9,19 @@ public class FlexPrefsIniter : MonoBehaviour
     async void Start()
     {
         this.InjectFieldBindings();
-        await FlexPrefs.Initialize(_flexPrefsSaveSytem,_userModel.GetActiveUserId());
+        await FlexPrefs.Initialize(_flexPrefsSaveSytem, _userModel.GetActiveUserId());
     }
 
     private void OnApplicationQuit()
     {
-        FlexPrefs.Save();
+        _ = FlexPrefs.Save();
     }
 
 #if UNITY_PS5
     private void OnApplicationFocus(bool focus)
     {
         if (!focus)
-           FlexPrefs.Save();
+            _ = FlexPrefs.Save();
     }
 #endif
 }
