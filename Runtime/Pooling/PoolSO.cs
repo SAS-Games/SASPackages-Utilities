@@ -10,7 +10,7 @@ namespace SAS.Pool
         protected readonly Stack<T> Available = new Stack<T>();
         protected abstract IFactory<T> Factory { get; }
 
-       
+
         public int Inactive => Available.Count;
         public int Capacity => _active + Inactive;
         public int Active => _active;
@@ -30,7 +30,7 @@ namespace SAS.Pool
                 Debug.LogWarning($"Pool {name} has already been prewarmed.");
                 return;
             }
-            
+
             ExpandBy(count);
             _prewarmed = true;
         }
@@ -56,6 +56,7 @@ namespace SAS.Pool
             try
             {
                 var item = Available.Pop();
+                item.ForEachChild<ISpawnable>(spawnable => spawnable.OnSpawn(data));
                 _active++;
                 return item;
             }
@@ -69,11 +70,13 @@ namespace SAS.Pool
         {
             --_active;
             Available.Push(item);
+            item.ForEachChild<ISpawnable>(spawnable => spawnable.OnDespawn());
         }
 
         public virtual void Clear()
         {
             Available.Clear();
         }
+
     }
 }

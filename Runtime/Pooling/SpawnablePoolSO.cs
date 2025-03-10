@@ -22,7 +22,6 @@ namespace SAS.Pool
             if (item != null)
             {
                 item.SetParent(parent);
-                item.OnSpawn(data);
             }
             return item;
         }
@@ -38,7 +37,6 @@ namespace SAS.Pool
             }
             item.Unparent();
             base.Despawn(item);
-            item.OnDespawn();
         }
     }
 }
