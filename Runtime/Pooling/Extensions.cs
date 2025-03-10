@@ -20,21 +20,12 @@ namespace SAS.Pool
 
         public static void ForEachChild<T>(this object item, Action<T> childAction, bool includeInactive = true)
         {
-            GameObject gameObject = item switch
-            {
-                GameObject go => go,
-                Component component => component.gameObject,
-                _ => null
-            };
-
-            if (gameObject != null)
-            {
-                gameObject.ForEachChild(childAction, includeInactive);
-            }
+            if (item is GameObject go)
+                go.ForEachChild(childAction, includeInactive);
+            else if (item is Component component)
+                component.gameObject.ForEachChild(childAction, includeInactive);
             else
-            {
-                Debug.LogError($"Cannot convert {typeof(T)} to GameObject.");
-            }
+                Debug.LogError($"ForEachChild: Cannot convert {item?.GetType().Name ?? "null"} to GameObject.");
         }
     }
 }
