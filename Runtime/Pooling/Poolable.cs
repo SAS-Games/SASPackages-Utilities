@@ -5,7 +5,7 @@ namespace SAS.Pool
     public abstract class Poolable : MonoBase
     {
         internal ComponentPoolSO<Poolable> ObjectPool { get; set; }
-        public bool active { get; private set; } = false;
+        public bool active { get; set; } = false;
        
 
         public void Despawn()
