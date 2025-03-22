@@ -22,6 +22,7 @@ namespace SAS.Pool
             if (item != null)
             {
                 item.SetParent(parent);
+                item.active = true;
             }
             return item;
         }
@@ -35,6 +36,7 @@ namespace SAS.Pool
             {
                 (children[i] as Poolable).Despawn();
             }
+            item.active = false;
             item.Unparent();
             base.Despawn(item);
         }
