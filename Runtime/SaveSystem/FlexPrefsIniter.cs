@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class FlexPrefsIniter : MonoBehaviour
 {
-    [Inject(Tag.FlexPrefs)] ISaveSystem _flexPrefsSaveSytem;
+    [Inject] ISaveSystem _flexPrefsSaveSytem;
     [Inject] IUserModel _userModel;
 
     async void Start()
