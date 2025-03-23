@@ -2,7 +2,7 @@ using SAS.Utilities.TagSystem;
 
 namespace SAS.Pool
 {
-    public abstract class Poolable : MonoBase
+    public class Poolable : MonoBase
     {
         internal ComponentPoolSO<Poolable> ObjectPool { get; set; }
         public bool active { get; set; } = false;
