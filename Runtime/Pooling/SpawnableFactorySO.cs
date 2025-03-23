@@ -10,6 +10,8 @@ namespace SAS.Pool
         public override bool Create(out Poolable item)
         {
             item = Instantiate(m_Prefab).GetComponent<Poolable>();
+             if(item == null) 
+                 Debug.LogError($"Object is not having the Poolable component attached, factory is {this.name}");
             return item != null;
         }
     }
