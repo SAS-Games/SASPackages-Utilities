@@ -6,9 +6,11 @@ using UnityEngine.SceneManagement;
 
 namespace SAS.SceneManagement
 {
-    public interface ILoadingScreen
+   public interface ILoadingScreen
     {
         void SetActive(bool active);
+        Action OnFadeInComplete{get; set;}
+        Action OnFadeOutComplete{get; set;}
     }
 
     public struct SceneGroupLoadedEvent : IEvent
