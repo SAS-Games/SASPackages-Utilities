@@ -9,6 +9,7 @@ public class SceneGroupLoader : MonoBehaviour
     [SerializeField] private string m_SceneGroupName;
     [SerializeField] private bool m_LoadOptionalScenes = false;
     [SerializeField] private bool m_LoadOnStart = false;
+    [Tooltip("Before unloading the Current Scene Group, Set an active scene.")]
     [SerializeField] private string m_SetActiveScene = "Persistent";
     [SerializeField] private MonoBehaviour m_LoadingScreenBehaviour;
 
@@ -23,8 +24,12 @@ public class SceneGroupLoader : MonoBehaviour
             await LoadSceneGroup();
     }
 
+    public void Load()
+    {
+        _ = LoadSceneGroup();
+    }
 
-    async Task LoadSceneGroup()
+    private async Task LoadSceneGroup()
     {
         _loadingScreen?.SetActive(true);
 
@@ -32,6 +37,5 @@ public class SceneGroupLoader : MonoBehaviour
             SceneUtility.SetActiveScene(m_SetActiveScene);
         await _sceneLoader.LoadSceneGroup(m_SceneGroupName, !m_LoadOptionalScenes);
         _loadingScreen?.SetActive(false);
-
     }
 }
