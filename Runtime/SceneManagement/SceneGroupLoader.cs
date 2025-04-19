@@ -1,6 +1,6 @@
+using System.Threading.Tasks;
 using SAS.SceneManagement;
 using SAS.Utilities.TagSystem;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public class SceneGroupLoader : MonoBehaviour
@@ -9,16 +9,24 @@ public class SceneGroupLoader : MonoBehaviour
     [SerializeField] private string m_SceneGroupName;
     [SerializeField] private bool m_LoadOptionalScenes = false;
     [SerializeField] private bool m_LoadOnStart = false;
-    [Tooltip("Before unloading the Current Scene Group, Set an active scene.")]
-    [SerializeField] private string m_SetActiveScene = "Persistent";
-    [SerializeField] private MonoBehaviour m_LoadingScreenBehaviour;
+
+    [Tooltip("Before unloading the Current Scene Group, Set an active scene.")] [SerializeField]
+    private string m_SetActiveScene = "Persistent";
+
+    [SerializeField] private GameObject m_LoadingScreen;
 
     private ILoadingScreen _loadingScreen;
 
     private async void Start()
     {
         this.InjectFieldBindings();
-        _loadingScreen = m_LoadingScreenBehaviour as ILoadingScreen;
+        if (m_LoadingScreen)
+        {
+            _loadingScreen = m_LoadingScreen.GetComponentInChildren<ILoadingScreen>();
+            if (_loadingScreen != null)
+                _loadingScreen.OnFadeOutComplete += () => GameObject.Destroy(gameObject);
+        }
+
         if (m_LoadOnStart)
             await LoadSceneGroup();
     }
@@ -33,7 +41,15 @@ public class SceneGroupLoader : MonoBehaviour
         _loadingScreen?.SetActive(true);
 
         if (!string.IsNullOrEmpty(m_SetActiveScene))
-            SceneUtility.SetActiveScene(m_SetActiveScene);
+        {
+            var scene = SceneUtility.GetScene(m_SetActiveScene);
+            if (scene.isLoaded)
+            {
+                SceneUtility.MoveGameObjectToScene(gameObject, scene);
+                SceneUtility.SetActiveScene(m_SetActiveScene);
+            }
+        }
+
         await _sceneLoader.LoadSceneGroup(m_SceneGroupName, !m_LoadOptionalScenes);
         _loadingScreen?.SetActive(false);
     }
