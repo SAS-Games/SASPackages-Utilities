@@ -21,7 +21,7 @@ namespace SAS.SceneManagement
         public Scene scene;
     }
 
-    interface ISceneLoader : IBindable
+    public interface ISceneLoader : IBindable
     {
         Task LoadSceneGroup(string groupName, bool ignoreOptional = false);
         Task LoadSceneAdditively(string sceneName, IProgress<float> progress = null);
