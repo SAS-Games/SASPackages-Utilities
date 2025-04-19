@@ -43,18 +43,21 @@ public static class SceneUtility
                 {
                     if (component.gameObject.name == objectName)
                     {
-                        Debug.Log($"Found {typeof(T).Name} in scene {targetScene.name} on object {component.gameObject.name}.");
+                        Debug.Log(
+                            $"Found {typeof(T).Name} in scene {targetScene.name} on object {component.gameObject.name}.");
                         return component;
                     }
                 }
 
                 // If no matching object name is found, log a warning and continue to next root object
-                Debug.LogWarning($"No component of type {typeof(T).Name} with object name '{objectName}' found in scene {targetScene.name}.");
+                Debug.LogWarning(
+                    $"No component of type {typeof(T).Name} with object name '{objectName}' found in scene {targetScene.name}.");
                 continue;
             }
 
             // If objectName is not provided, return the first component
-            Debug.Log($"Found first {typeof(T).Name} in scene {targetScene.name} on object {components[0].gameObject.name}.");
+            Debug.Log(
+                $"Found first {typeof(T).Name} in scene {targetScene.name} on object {components[0].gameObject.name}.");
             return components[0];
         }
 
@@ -62,7 +65,6 @@ public static class SceneUtility
         Debug.LogWarning($"No component of type {typeof(T).Name} found in scene {targetScene.name}.");
         return null;
     }
-
 
 
     /// <summary>
@@ -110,9 +112,20 @@ public static class SceneUtility
         else
             Debug.LogWarning($"Active scene {scene.name} not found or is not valid.");
     }
+
     public static void SetActiveScene(string sceneName)
     {
         var scene = SceneManager.GetSceneByName(sceneName);
         SetActiveScene(scene);
+    }
+
+    public static Scene GetScene(string sceneName)
+    {
+        return SceneManager.GetSceneByName(sceneName);
+    }
+
+    public static void MoveGameObjectToScene(GameObject objectToMove, Scene scene)
+    {
+        SceneManager.MoveGameObjectToScene(objectToMove, scene);
     }
 }
