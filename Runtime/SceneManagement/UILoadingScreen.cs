@@ -2,6 +2,7 @@ using SAS.SceneManagement;
 using SAS.Utilities.TagSystem;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class UILoadingScreen : MonoBehaviour, ILoadingScreen
 {
@@ -11,6 +12,8 @@ public class UILoadingScreen : MonoBehaviour, ILoadingScreen
     [SerializeField] Canvas m_LoadingCanvas;
 
     private float _currentProgress;
+    public Action OnFadeInComplete{get;set;}
+    public Action OnFadeOutComplete{get;set;}
 
     private void Awake()
     {
