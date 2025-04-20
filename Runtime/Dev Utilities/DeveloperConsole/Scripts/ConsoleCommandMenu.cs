@@ -49,7 +49,7 @@ namespace SAS.Utilities.DeveloperConsole
         {
             foreach (var command in _developerConsole.Commands)
             {
-                if(command == null)
+                if(command == null || !(command as ConsoleCommand).UICommand)
                     continue;
                 if (!_consoleCommandsButton.TryDequeue(out var commandButton))
                     commandButton = Instantiate(m_ConsoleCommandButton);

@@ -9,7 +9,7 @@ namespace SAS
     public enum LogLevel
     {
         None = 0,
-        Info = 1,
+        Info = 1 << 0,
         Warning = 1 << 1,
         Error = 1 << 2,
     }
