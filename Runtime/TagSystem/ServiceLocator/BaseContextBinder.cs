@@ -8,13 +8,16 @@ namespace SAS.Utilities.TagSystem
     public class BaseContextBinder : MonoBase, IContextBinder
     {
         [SerializeField] public bool m_EarlyBinding = false;
-        [Tooltip("If True, this GameObject will be marked as DontDestroyOnLoad. Make Sure Only one context is there for which  isCrossContextBinder is true")]
-        [SerializeField] private bool m_IsCrossContextBinder;
+
+        [Tooltip(
+            "If True, this GameObject will be marked as DontDestroyOnLoad. Make Sure Only one context is there for which  isCrossContextBinder is true")]
+        [field: SerializeField] public bool IsCrossContextBinder { get; private set; }
+
         [SerializeField] public Binder m_Binder;
 
         void Awake()
         {
-            if (m_IsCrossContextBinder)
+            if (IsCrossContextBinder)
             {
                 if (!ComponentExtensions._cachedContext.TryGetValue("DontDestroyOnLoad", out var context))
                 {
@@ -24,6 +27,7 @@ namespace SAS.Utilities.TagSystem
                 else
                     Debug.LogWarning($"There is already an CrossContextBinder wit the name {context.GetType().Name} ");
             }
+
             if (m_EarlyBinding)
                 m_Binder.CreateAllInstance(this);
         }

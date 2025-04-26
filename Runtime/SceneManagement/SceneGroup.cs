@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace SAS.SceneManagement
 {
@@ -13,9 +14,19 @@ namespace SAS.SceneManagement
         public string Name => m_Name;
         public List<SceneData> Scenes;
 
+        public SceneData FindSceneDataByType(SceneType sceneType)
+        {
+            return Scenes.FirstOrDefault(scene => scene.SceneType == sceneType);
+        }
+
         public string FindSceneNameByType(SceneType sceneType)
         {
-            return Scenes.FirstOrDefault(scene => scene.SceneType == sceneType)?.Reference.Name;
+            return FindSceneDataByType(sceneType)?.Reference.Name;
+        }
+
+        public Scene GetActiveScene()
+        {
+            return SceneManager.GetSceneByName(FindSceneNameByType(SceneType.ActiveScene));
         }
     }
 
@@ -28,5 +39,14 @@ namespace SAS.SceneManagement
         public bool IsOptinal;
     }
 
-    public enum SceneType { ActiveScene = 1, MainMenu, UserInterface, HUD, Cinematic, Environment, Tooling }
+    public enum SceneType
+    {
+        ActiveScene = 1,
+        MainMenu,
+        UserInterface,
+        HUD,
+        Cinematic,
+        Environment,
+        Tooling
+    }
 }

@@ -73,7 +73,7 @@ public static class SceneUtility
     /// <typeparam name="T">The type of component to search for.</typeparam>
     /// <param name="sceneName">The name of the scene to search in.</param>
     /// <returns>A list of components of type T found in the scene.</returns>
-    public static List<T> FindComponentsInScene<T>(string sceneName) where T : Component
+    public static List<T> FindComponentsInScene<T>(string sceneName)
     {
         List<T> components = new List<T>();
 

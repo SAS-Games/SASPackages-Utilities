@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace SAS.Utilities.TagSystem
 {
     public class ServiceLocator : IServiceLocator
     {
-        public interface IService { }
+        public interface IService
+        {
+        }
 
-        private Dictionary<string, List<object>> _services = new Dictionary<string, List<object>>();
+        private Dictionary<Key, List<object>> _services = new Dictionary<Key, List<object>>();
 
-        public void Add<T>(object service, string tag = "")
+        public void Add<T>(object service, Tag tag = Tag.None)
         {
             Add(typeof(T), service, tag);
         }
 
-        public void Add(Type type, object service, string tag = "")
+        public void Add(Type type, object service, Tag tag = Tag.None)
         {
             var key = GetKey(type, tag);
             if (!_services.TryGetValue(key, out var serviceList))
@@ -36,25 +37,25 @@ namespace SAS.Utilities.TagSystem
                 Add(baseType, service, tag);
         }
 
-        private string GetKey(Type type, string tag)
+        private Key GetKey(Type type, Tag tag)
         {
-            return $"{type.Name}{tag}";
+            return new Key { type = type, tag = tag };
         }
 
-        public T Get<T>(string tag = "")
+        public T Get<T>(Tag tag = Tag.None)
         {
             TryGet<T>(out var service, tag);
             return service;
         }
 
-        public bool TryGet<T>(out T service, string tag = "")
+        public bool TryGet<T>(out T service, Tag tag = Tag.None)
         {
             bool result = TryGet(typeof(T), out object serviceObj, tag);
-            service = (T)serviceObj; 
+            service = (T)serviceObj;
             return result;
         }
 
-        public bool TryGet(Type type, out object service, string tag = "")
+        public bool TryGet(Type type, out object service, Tag tag = Tag.None)
         {
             var key = GetKey(type, tag);
             if (!_services.TryGetValue(key, out var services))
@@ -71,12 +72,12 @@ namespace SAS.Utilities.TagSystem
             return true;
         }
 
-        public IEnumerable<T> GetAll<T>(string tag = "")
+        public IEnumerable<T> GetAll<T>(Tag tag = Tag.None)
         {
             return GetAll(typeof(T), tag).Cast<T>();
         }
 
-        public IEnumerable<object> GetAll(Type type, string tag = "")
+        public IEnumerable<object> GetAll(Type type, Tag tag = Tag.None)
         {
             if (_services.TryGetValue(GetKey(type, tag), out var value))
                 return value;
@@ -84,12 +85,12 @@ namespace SAS.Utilities.TagSystem
                 return Array.Empty<object>();
         }
 
-        public T GetOrCreate<T>(string tag = "")
+        public T GetOrCreate<T>(Tag tag = Tag.None)
         {
             return (T)GetOrCreate(typeof(T), tag);
         }
 
-        public object GetOrCreate(Type type, string tag = "")
+        public object GetOrCreate(Type type, Tag tag = Tag.None)
         {
             var key = GetKey(type, tag);
             if (!_services.TryGetValue(key, out var values))
@@ -102,12 +103,12 @@ namespace SAS.Utilities.TagSystem
             return values[0];
         }
 
-        public bool Remove<T>(string tag = "")
+        public bool Remove<T>(Tag tag = Tag.None)
         {
             return Remove(typeof(T), tag);
         }
 
-        public bool Remove(Type type, string tag = "")
+        public bool Remove(Type type, Tag tag = Tag.None)
         {
             var key = GetKey(type, tag);
             return !_services.Remove(key);
