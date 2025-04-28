@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using SAS.SceneManagement;
 using SAS.Utilities.TagSystem;
 using UnityEngine;
+using Debug = SAS.Debug;
 
 public class SceneGroupLoader : MonoBehaviour
 {
@@ -51,6 +52,7 @@ public class SceneGroupLoader : MonoBehaviour
         }
 
         await _sceneLoader.LoadSceneGroup(m_SceneGroupName, !m_LoadOptionalScenes);
+        Debug.Log($"Scene Group: {m_SceneGroupName} is loaded. Hide loading screen");
         _loadingScreen?.SetActive(false);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using SAS.Utilities.TagSystem;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace SAS.Pool
 {
@@ -19,14 +20,16 @@ namespace SAS.Pool
                     poolClearer.Init(this);
                     _poolRoot.SetParent(_parent);
                 }
+
                 return _poolRoot;
             }
         }
 
-        public void SetParent(Transform t)
+        public void SetSceneAndSetParent(Scene scene, Transform t)
         {
             _parent = t;
             PoolRoot.SetParent(_parent);
+            SceneUtility.MoveGameObjectToScene(PoolRoot.gameObject, scene);
         }
 
         protected override bool Create(out T item)
@@ -64,6 +67,7 @@ namespace SAS.Pool
                     Destroy(poolObject.gameObject);
                 }
             }
+
             base.Clear();
         }
     }

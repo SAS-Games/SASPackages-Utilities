@@ -99,7 +99,7 @@ namespace SAS.Utilities.TagSystem
             var allFields = GetAllFields(instance);
 
             if (!TryGetContext(component.gameObject, out var context))
-                Debug.LogError("No Context binder found in the scene");
+                Debug.LogWarning("No Context binder found in the scene");
 
             foreach (var field in allFields)
             {

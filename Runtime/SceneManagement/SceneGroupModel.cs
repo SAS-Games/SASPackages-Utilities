@@ -23,7 +23,8 @@ namespace SAS.SceneManagement
 
         private SceneGroup _activeSceneGroup;
 
-        internal async Task LoadScenes(SceneGroup group, IProgress<float> progress = null, bool reloadDupScenes = false, bool ignoreOptional = false)
+        internal async Task LoadScenes(SceneGroup group, IProgress<float> progress = null, bool reloadDupScenes = false,
+            bool ignoreOptional = false)
         {
             _activeSceneGroup = group;
             var loadedScenes = new HashSet<string>();
@@ -70,6 +71,7 @@ namespace SAS.SceneManagement
                 Debug.Log($"current progress: {(operationGroup.Progress + _handleGroup.Progress) / 2}", TAG);
                 progress?.Report((operationGroup.Progress + _handleGroup.Progress) / 2);
                 await Task.Delay(100);
+                Debug.Log($"Scene Group: {_activeSceneGroup.Name} is loaded");
             }
 
             SetActiveScene(group);
@@ -119,7 +121,8 @@ namespace SAS.SceneManagement
                 }
             }
 
-            EventBus<AdditiveSceneLoadedEvent>.Raise(new AdditiveSceneLoadedEvent { scene = SceneManager.GetSceneByName(sceneName) });
+            EventBus<AdditiveSceneLoadedEvent>.Raise(new AdditiveSceneLoadedEvent
+                { scene = SceneManager.GetSceneByName(sceneName) });
         }
 
         internal async Task UnloadScenes()
@@ -130,7 +133,8 @@ namespace SAS.SceneManagement
             for (var i = 0; i < SceneManager.sceneCount; i++)
             {
                 var scene = SceneManager.GetSceneAt(i);
-                if (!scene.isLoaded || scene.name == activeSceneName || scene.name == BootstrapperScene || scene.name == PersistentScene)
+                if (!scene.isLoaded || scene.name == activeSceneName || scene.name == BootstrapperScene ||
+                    scene.name == PersistentScene)
                     continue;
 
                 scenesToUnload.Add(scene.name);
@@ -141,7 +145,7 @@ namespace SAS.SceneManagement
             foreach (var sceneName in scenesToUnload)
             {
                 var operation = SceneManager.UnloadSceneAsync(sceneName);
-                if (operation != null) 
+                if (operation != null)
                     operationGroup.Operations.Add(operation);
                 OnSceneUnloaded.Invoke(sceneName);
             }
@@ -321,7 +325,6 @@ namespace SAS.SceneManagement
 
             OnSceneUnloaded.Invoke(sceneName);
         }
-
     }
 
     public readonly struct AsyncOperationGroup
