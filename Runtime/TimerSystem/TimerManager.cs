@@ -1,14 +1,34 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace SAS.TimerSystem
 {
     public static class TimerManager
     {
-        static readonly List<Timer> timers = new();
+        static readonly HashSet<Timer> timers = new();
         static readonly List<Timer> sweep = new();
 
-        public static void RegisterTimer(Timer timer) => timers.Add(timer);
-        public static void DeregisterTimer(Timer timer) => timers.Remove(timer);
+       
+        public static void RegisterTimer(Timer timer)
+        {
+            if (timer == null)
+            {
+                Debug.LogWarning("[TimerManager] Attempted to register a null timer.");
+                return;
+            }
+
+            if (!timers.Add(timer))
+            {
+                Debug.LogWarning($"[TimerManager] Timer '{timer}' is already registered.");
+                return;
+            }
+        }
+
+        public static void DeregisterTimer(Timer timer)
+        {
+            if (timer == null) return;
+            timers.Remove(timer);
+        }
 
         public static void UpdateTimers()
         {

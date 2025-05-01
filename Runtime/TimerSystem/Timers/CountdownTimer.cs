@@ -8,8 +8,7 @@ namespace SAS.TimerSystem
     public class CountdownTimer : Timer
     {
         public CountdownTimer(float value) : base(value) { }
-        public CountdownTimer() : base(0) { }
-
+        
         public override void Tick()
         {
             if (IsRunning && CurrentTime > 0)
@@ -21,12 +20,6 @@ namespace SAS.TimerSystem
             {
                 Stop();
             }
-        }
-
-        public void Start(float value)
-        {
-            initialTime = value;
-            Start();
         }
 
         public override bool IsFinished => CurrentTime <= 0;
