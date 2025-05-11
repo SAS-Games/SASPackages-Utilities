@@ -9,13 +9,12 @@ namespace SAS.Utilities.TagSystem
     {
         [SerializeField] public bool m_EarlyBinding = false;
 
-        [Tooltip(
-            "If True, this GameObject will be marked as DontDestroyOnLoad. Make Sure Only one context is there for which  isCrossContextBinder is true")]
+        [Tooltip("If True, this GameObject will be marked as DontDestroyOnLoad. Make Sure Only one context is there for which  isCrossContextBinder is true")]
         [field: SerializeField] public bool IsCrossContextBinder { get; private set; }
 
         [SerializeField] public Binder m_Binder;
 
-        void Awake()
+        protected override void Awake()
         {
             if (IsCrossContextBinder)
             {

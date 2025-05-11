@@ -131,8 +131,19 @@ namespace SAS.Utilities.TagSystem
                 ele => ele.InterfaceType.Equals(type) && ele.Tag == tag && !ele.IsPlatformExcluded());
             if (binding == null)
             {
-                Debug.LogError(
-                    $"No valid binding found for interface type '{type.FullName}' with tag '{tag}'. It may be excluded for the current platform: {Application.platform}.");
+                var potentialBinding = Array.Find(m_Bindings, ele => ele.InterfaceType.Equals(type) && ele.Tag == tag);
+
+                if (potentialBinding != null && potentialBinding.IsPlatformExcluded())
+                {
+                    Debug.LogError(
+                        $"Binding for interface type '{type.FullName}' with tag '{tag}' exists but is excluded for the current platform: {Application.platform}.");
+                }
+                else
+                {
+                    Debug.LogError(
+                        $"No binding found for interface type '{type.FullName}' with tag '{tag}'.");
+                }
+
                 return null;
             }
 
