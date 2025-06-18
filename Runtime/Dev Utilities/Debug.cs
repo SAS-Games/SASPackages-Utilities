@@ -14,7 +14,7 @@ namespace SAS
         Error = 1 << 2,
     }
 
-    public static class Debug
+    public static partial class Debug
     {
         const string DEBUG = "DEBUG";
         private static LogLevel LogLevel = (LogLevel)(7);
@@ -55,6 +55,8 @@ namespace SAS
                     UnityEngine.Debug.LogWarning(logMessage);
                 else if (level == LogLevel.Error)
                     UnityEngine.Debug.LogError(logMessage);
+
+                AddOnScreenLogEntry(message, tag, level);
             }
         }
 
@@ -85,6 +87,7 @@ namespace SAS
         public static void LogException(Exception exception)
         {
             UnityEngine.Debug.LogException(exception);
+            AddOnScreenLogEntry(exception.ToString(), "EXCEPTION", LogLevel.Error);
         }
 
         public static bool CanLog(LogLevel level)
@@ -92,10 +95,9 @@ namespace SAS
             return LogLevel.HasFlag(level);
         }
 
-
         private static bool TagPassesFilter(string tag)
         {
-            // If no allowed tags or the tag is present in the allowed tags, the filter passes
+             // If no allowed tags or the tag is present in the allowed tags, the filter passes
             return AllowedTags.Count == 0 || AllowedTags.Contains(tag);
         }
 
@@ -103,5 +105,8 @@ namespace SAS
         {
             UnityEngine.Debug.DrawRay(rayOrigin, vector3, color);
         }
+
+        // Partial method implemented in the other file
+        private static partial void AddOnScreenLogEntry(string message, string tag, LogLevel level);
     }
 }
