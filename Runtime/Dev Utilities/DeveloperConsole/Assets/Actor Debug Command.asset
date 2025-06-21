@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f3281378885fb7488f5e465aafa8f59, type: 3}
   m_Name: Actor Debug Command
   m_EditorClassIdentifier: 
-  commandWord: ActorDebug
-  <UICommand>k__BackingField: 1
+  <Name>k__BackingField: ActorDebug
+  <Presets>k__BackingField: []

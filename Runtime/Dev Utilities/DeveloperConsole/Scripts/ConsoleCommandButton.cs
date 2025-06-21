@@ -12,9 +12,9 @@ namespace SAS.Utilities.DeveloperConsole
 
         public void Init(IConsoleCommand command, DeveloperConsoleBehaviour developerConsole)
         {
-            m_TextView.text = command.CommandWord;
-            _command = command;
-            _developerConsole = developerConsole;
+            // m_TextView.text = command.CommandWord;
+            // _command = command;
+            // _developerConsole = developerConsole;
         }
 
         public void ProcessCommand()

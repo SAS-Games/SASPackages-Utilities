@@ -1,9 +1,7 @@
-﻿using TMPro;
+﻿using System.Collections;
+using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.UI;
-using UnityEngine.UIElements.InputSystem;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace SAS.Utilities.DeveloperConsole
@@ -13,22 +11,25 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private string m_Prefix = string.Empty;
         [SerializeField] private ConsoleCommand[] m_Commands = new ConsoleCommand[0];
 
-        [Header("UI")]
-        [SerializeField] private GameObject m_UiCanvas = null;
+        [Header("UI")] [SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
-        [SerializeField] private TMP_Text m_SuggestionsText = null;
         [SerializeField] private TMP_Text m_HelpText = null;
         [SerializeField] private bool m_PauseOnOpen = false;
-        [SerializeField] private InputActionReference m_ToggleInputActionReference;
+        [SerializeField] private SuggestionUI m_SuggestionUI;
 
         private float pausedTimeScale;
         private DeveloperConsole developerConsole;
+        private ConsoleInputActions inputActions;
 
         internal DeveloperConsole DeveloperConsole
         {
             get
             {
-                if (developerConsole != null) { return developerConsole; }
+                if (developerConsole != null)
+                {
+                    return developerConsole;
+                }
+
                 return developerConsole = new DeveloperConsole(m_Prefix, m_Commands);
             }
         }
@@ -36,18 +37,20 @@ namespace SAS.Utilities.DeveloperConsole
         private void Awake()
         {
             pausedTimeScale = Time.timeScale;
+            inputActions = new ConsoleInputActions();
+            inputActions.Developer.ToggleConsole.performed += Toggle;
 
             if (m_InputField != null)
                 m_InputField.onValueChanged.AddListener(OnInputChanged);
 
-            m_ToggleInputActionReference.action.performed += Toggle;
-            m_ToggleInputActionReference.action.Enable();
+            m_SuggestionUI.onSuggestionSelected = ApplySuggestion;
         }
 
-        public void Toggle(CallbackContext context)
-        {
-            if (!context.action.triggered) { return; }
+        private void OnEnable() => inputActions.Developer.Enable();
+        private void OnDisable() => inputActions.Developer.Disable();
 
+        private void Toggle(CallbackContext context)
+        {
             if (m_UiCanvas.activeSelf)
             {
                 if (m_InputField != null)
@@ -61,16 +64,24 @@ namespace SAS.Utilities.DeveloperConsole
                     pausedTimeScale = Time.timeScale;
                     Time.timeScale = 0;
                 }
+
                 m_UiCanvas.SetActive(true);
+                StartCoroutine(FocusInputFieldNextFrame());
             }
         }
-
+        private IEnumerator FocusInputFieldNextFrame()
+        {
+            yield return null; // wait one frame
+            m_InputField.ActivateInputField();
+            m_InputField.Select();
+        }
         public void ProcessCommand(string inputValue)
         {
             DeveloperConsole.ProcessCommand(inputValue, this);
             m_InputField.text = string.Empty;
-            m_SuggestionsText.text = string.Empty;
+            m_SuggestionUI.Hide();
         }
+
         public void DisplayHelpText(string helpText)
         {
             if (m_HelpText != null)
@@ -82,67 +93,20 @@ namespace SAS.Utilities.DeveloperConsole
         {
             if (string.IsNullOrEmpty(input))
             {
-                m_SuggestionsText.text = string.Empty;
+                m_SuggestionUI.Hide();
                 return;
             }
 
-            var suggestions = DeveloperConsole.GetCommandSuggestion(input);
-            m_SuggestionsText.text = string.Join("\n", suggestions);
+            var suggestions = DeveloperConsole.GetCommandSuggestions(input);
+            m_SuggestionUI.ShowSuggestions(suggestions);
         }
 
-        private float touchDuration = 0f;
-        private const float requiredDuration = 5f;
-
-        void Update()
+        private void ApplySuggestion(string suggestion)
         {
-            if (Touchscreen.current != null)
-            {
-                // Count active touches
-                int activeTouches = 0;
-                foreach (var touch in Touchscreen.current.touches)
-                {
-                    if (touch.press.isPressed)
-                    {
-                        activeTouches++;
-                    }
-                }
-
-                // Check if 4 fingers are pressed
-                if (activeTouches >= 4)
-                {
-                    touchDuration += Time.deltaTime;
-
-                    if (touchDuration >= requiredDuration)
-                    {
-                        if (m_UiCanvas.activeSelf)
-                        {
-                            if (m_InputField != null)
-                                Time.timeScale = pausedTimeScale;
-                            m_UiCanvas.SetActive(false);
-                        }
-                        else
-                        {
-                            if (m_PauseOnOpen)
-                            {
-                                pausedTimeScale = Time.timeScale;
-                                Time.timeScale = 0;
-                            }
-                            m_UiCanvas.SetActive(true);
-                            // m_InputField.ActivateInputField();
-                        }
-                        touchDuration = 0f; // Reset to prevent multiple triggers
-                    }
-                }
-                else
-                {
-                    touchDuration = 0f; // Reset if less than 4 fingers
-                }
-            }
-        }
-
-        private void OnDestroy()
-        {
-            m_ToggleInputActionReference.action.Disable();
+            m_InputField.text = developerConsole.Prefix + suggestion + " ";
+            m_InputField.caretPosition = m_InputField.text.Length;
+            m_InputField.Select();
+            m_SuggestionUI.Hide();
         }
     }
 }

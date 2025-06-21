@@ -2,7 +2,8 @@
 {
     public interface IConsoleCommand
     {
-        string CommandWord { get; }
+        string Name { get; }
+        string[] Presets { get; }
         string HelpText { get; }
         bool Process(DeveloperConsoleBehaviour developerConsole, string[] args = null);
     }
