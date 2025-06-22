@@ -7,7 +7,7 @@ namespace SAS.Utilities.DeveloperConsole
     public class DeveloperConsole
     {
         public readonly string Prefix;
-        public readonly IEnumerable<IConsoleCommand> ConsoleCommands;
+        private readonly IEnumerable<IConsoleCommand> ConsoleCommands;
         private readonly CommandTrie _commandTrie = new CommandTrie();
 
         public DeveloperConsole(string prefix, IEnumerable<IConsoleCommand> consoleCommands)
@@ -43,37 +43,28 @@ namespace SAS.Utilities.DeveloperConsole
                 return;
             }
 
-            // If the input ends with "help", show the command's help text
-            if (args.Length > 0 && args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
-            {
-                ShowHelpText(commandInput, developerConsole);
-                return;
-            }
-
             ProcessCommand(commandInput, args, developerConsole);
-        }
-
-        private void ShowHelpText(string commandInput, DeveloperConsoleBehaviour developerConsole)
-        {
-            var command =
-                ConsoleCommands.FirstOrDefault(c => c.Name.Equals(commandInput, StringComparison.OrdinalIgnoreCase));
-
-            if (command != null)
-                developerConsole.DisplayHelpText(command.HelpText); // Method to display help text in UI
-            else
-                developerConsole.DisplayHelpText($"No command found for '{commandInput}'");
         }
 
         private void ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole)
         {
             foreach (var command in ConsoleCommands)
             {
-                if (!commandInput.Equals(command.Name, StringComparison.OrdinalIgnoreCase))
+                if (!command.Contains(commandInput))
                     continue;
 
-                if (command.Process(developerConsole, args))
-                    return;
+                if (command.HelpRequest(commandInput, args, out var message))
+                    developerConsole.DisplayHelpText(message);
+                else
+                {
+                    if (!command.Process(developerConsole, commandInput, args))
+                        Debug.LogError($"Failed to execute the Command '{commandInput}'");
+                }
+
+                return;
             }
+
+            Debug.LogError($"No command found for '{commandInput}'");
         }
 
         public List<string> GetCommandSuggestions(string input)

@@ -2,15 +2,14 @@
 
 namespace SAS.Utilities.DeveloperConsole
 {
-    [CreateAssetMenu(fileName = "New Show FPS Command",
-        menuName = "SAS/Utilities/DeveloperConsole/Commands/Show FPS Command")]
+    [CreateAssetMenu(fileName = "New Show FPS Command", menuName = "SAS/Utilities/DeveloperConsole/Commands/Show FPS Command")]
     public class ShowFPSCommand : ConsoleCommand
     {
         [SerializeField] private GameObject m_FpsPrefab;
         private GameObject _fps;
         public override string HelpText => "Usage: FPS [true/false]. Show/Hide FPS UI.";
 
-        public override bool Process(DeveloperConsoleBehaviour developerConsole, string[] args)
+        public override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args)
         {
             if (args != null && args.Length > 0)
             {

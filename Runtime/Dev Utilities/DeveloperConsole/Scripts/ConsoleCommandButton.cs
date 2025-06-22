@@ -19,7 +19,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         public void ProcessCommand()
         {
-            _command.Process(_developerConsole);
+            //_command.Process(_developerConsole);
         }
     }
 }
