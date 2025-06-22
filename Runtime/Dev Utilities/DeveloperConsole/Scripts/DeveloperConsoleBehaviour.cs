@@ -102,7 +102,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void ApplySuggestion(string suggestion)
         {
-            m_InputField.text = developerConsole.Prefix + suggestion + " ";
+            m_InputField.text = developerConsole._prefix + suggestion + " ";
             m_InputField.caretPosition = m_InputField.text.Length;
             m_InputField.Select();
             m_SuggestionUI.Hide();

@@ -6,33 +6,35 @@ namespace SAS.Utilities.DeveloperConsole
 {
     public class DeveloperConsole
     {
-        public readonly string Prefix;
-        private readonly IEnumerable<IConsoleCommand> ConsoleCommands;
-        private readonly CommandTrie _commandTrie = new CommandTrie();
+        public readonly string _prefix;
+        private readonly IEnumerable<IConsoleCommand> _consoleCommands;
+        private readonly CommandSuggester _commandSuggester = new();
+        private readonly CommandHistory _commandHistory = new();
+
 
         public DeveloperConsole(string prefix, IEnumerable<IConsoleCommand> consoleCommands)
         {
-            this.Prefix = prefix;
-            this.ConsoleCommands = consoleCommands;
-            foreach (var consoleCommand in this.ConsoleCommands)
+            this._prefix = prefix;
+            this._consoleCommands = consoleCommands;
+            foreach (var consoleCommand in this._consoleCommands)
             {
-                _commandTrie.Insert($"{this.Prefix}{consoleCommand.Name}");
+                _commandSuggester.Insert($"{this._prefix}{consoleCommand.Name}");
 
                 foreach (var preset in consoleCommand.Presets)
                 {
-                    _commandTrie.Insert($"{this.Prefix}{preset}");
+                    _commandSuggester.Insert($"{this._prefix}{preset}");
                 }
             }
         }
 
         public void ProcessCommand(string inputValue, DeveloperConsoleBehaviour developerConsole)
         {
-            if (!inputValue.StartsWith(Prefix))
+            if (!inputValue.StartsWith(_prefix))
             {
                 return;
             }
 
-            inputValue = inputValue.Remove(0, Prefix.Length);
+            inputValue = inputValue.Remove(0, _prefix.Length);
             string[] inputSplit = inputValue.Split(' ');
 
             string commandInput = inputSplit[0];
@@ -43,12 +45,13 @@ namespace SAS.Utilities.DeveloperConsole
                 return;
             }
 
-            ProcessCommand(commandInput, args, developerConsole);
+            if (ProcessCommand(commandInput, args, developerConsole))
+                _commandHistory.Add(inputValue);
         }
 
-        private void ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole)
+        private bool ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole)
         {
-            foreach (var command in ConsoleCommands)
+            foreach (var command in _consoleCommands)
             {
                 if (!command.Contains(commandInput))
                     continue;
@@ -58,18 +61,22 @@ namespace SAS.Utilities.DeveloperConsole
                 else
                 {
                     if (!command.Process(developerConsole, commandInput, args))
+                    {
                         Debug.LogError($"Failed to execute the Command '{commandInput}'");
+                        return false;
+                    }
                 }
 
-                return;
+                return true;
             }
 
             Debug.LogError($"No command found for '{commandInput}'");
+            return false;
         }
 
         public List<string> GetCommandSuggestions(string input)
         {
-            return _commandTrie.GetAllWithPrefix(input);
+            return _commandSuggester.GetAllWithPrefix(input);
         }
     }
 }

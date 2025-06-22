@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 
-public class CommandTrie
+public class CommandSuggester
 {
     public class TrieNode
     {
