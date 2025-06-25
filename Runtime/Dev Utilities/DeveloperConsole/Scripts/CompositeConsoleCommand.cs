@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 namespace SAS.Utilities.DeveloperConsole
 {
@@ -16,12 +17,12 @@ namespace SAS.Utilities.DeveloperConsole
             public UnityEvent<string[]> Action;
         }
 
-        [SerializeField] private List<SubCommand> subCommands = new();
+        [FormerlySerializedAs("subCommands")] [SerializeField] private List<SubCommand> m_SubCommands = new();
         public override bool HelpRequest(string command, string[] args, out string message)
         {
             string subCommand = command.Split(".")[1];
 
-            var sub = subCommands.Find(s => s.Name.Equals(subCommand, StringComparison.OrdinalIgnoreCase));
+            var sub = m_SubCommands.Find(s => s.Name.Equals(subCommand, StringComparison.OrdinalIgnoreCase));
             if (sub == null)
             {
                 message = $"Subcommand: '{subCommand} under Command: {command}' not found.";
@@ -38,7 +39,7 @@ namespace SAS.Utilities.DeveloperConsole
         {
             string subCommand = command.Split(".")[1];
 
-            var sub = subCommands.Find(s => s.Name.Equals(subCommand, StringComparison.OrdinalIgnoreCase));
+            var sub = m_SubCommands.Find(s => s.Name.Equals(subCommand, StringComparison.OrdinalIgnoreCase));
             if (sub == null)
                 return false;
 
@@ -51,7 +52,7 @@ namespace SAS.Utilities.DeveloperConsole
             get
             {
                 List<string> presets = new();
-                foreach (var s in subCommands)
+                foreach (var s in m_SubCommands)
                 {
                     presets.Add($"{Name}.{s.Name}");
                     if (s.Presets != null)

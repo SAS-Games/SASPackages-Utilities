@@ -37,7 +37,7 @@ namespace SAS
 
             SetLogLevel((int)newLevel);
         }
-        
+
         public static bool IsLogLevelEnabled(LogLevel levelToCheck)
         {
             return (LogLevel & levelToCheck) != 0;
@@ -66,7 +66,7 @@ namespace SAS
         {
             if (CanLog(level) && TagPassesFilter(tag))
             {
-                string logMessage = $"{level}: {message}";
+                string logMessage = $"Tag: [{tag}] {message}";
                 if (level == LogLevel.Info)
                     UnityEngine.Debug.Log(logMessage);
                 else if (level == LogLevel.Warning)

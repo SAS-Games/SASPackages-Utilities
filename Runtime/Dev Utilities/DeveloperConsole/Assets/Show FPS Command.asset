@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Show FPS Command
   m_EditorClassIdentifier: 
   <Name>k__BackingField: FPS
-  <Presets>k__BackingField:
+  m_Presets:
   - FPS true
   - FPS false
   m_FpsPrefab: {fileID: 4840794096766531456, guid: fb3a402e3759cbe45813e6578e8d33e5, type: 3}

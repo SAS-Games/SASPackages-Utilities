@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Name>k__BackingField: Logging
   m_Presets: []
-  subCommands:
+  m_SubCommands:
   - Name: LogLevel
     HelpText: 
     Presets:
@@ -39,4 +39,25 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+  - Name: OnScreenLog
+    HelpText: 
+    Presets:
+    - OnScreenLog On
+    - OnScreenLog Off
+    Action:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 11400000}
+          m_TargetAssemblyTypeName: LoggingConsoleCommand, AssemblyUtilities
+          m_MethodName: ShowOnScreen
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
   m_HelpText: 
+  m_OnScreenLogPrefab: {fileID: 8162142777781139144, guid: 47313525747476e43adaefd09fce542c, type: 3}
