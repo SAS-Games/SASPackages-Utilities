@@ -18,10 +18,12 @@ MonoBehaviour:
   - Name: LogLevel
     HelpText: 
     Presets:
-    - LogLevel Info
-    - LogLevel Warning
-    - LogLevel Error
-    - LogLevel Verbose
+    - LogLevel Info On
+    - LogLevel Warning On
+    - LogLevel Error On
+    - LogLevel Info Off
+    - LogLevel Warning Off
+    - LogLevel Error Off
     Action:
       m_PersistentCalls:
         m_Calls:

@@ -7,16 +7,16 @@ namespace SAS.Utilities.DeveloperConsole
     public class DeveloperConsole
     {
         public readonly string _prefix;
-        private readonly IEnumerable<IConsoleCommand> _consoleCommands;
         private readonly CommandSuggester _commandSuggester = new();
         private readonly CommandHistory _commandHistory = new();
+        public readonly IEnumerable<IConsoleCommand> ConsoleCommands;
 
 
         public DeveloperConsole(string prefix, IEnumerable<IConsoleCommand> consoleCommands)
         {
             this._prefix = prefix;
-            this._consoleCommands = consoleCommands;
-            foreach (var consoleCommand in this._consoleCommands)
+            this.ConsoleCommands = consoleCommands;
+            foreach (var consoleCommand in this.ConsoleCommands)
             {
                 _commandSuggester.Insert($"{this._prefix}{consoleCommand.Name}");
 
@@ -51,7 +51,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         private bool ProcessCommand(string commandInput, string[] args, DeveloperConsoleBehaviour developerConsole)
         {
-            foreach (var command in _consoleCommands)
+            foreach (var command in ConsoleCommands)
             {
                 if (!command.Contains(commandInput))
                     continue;

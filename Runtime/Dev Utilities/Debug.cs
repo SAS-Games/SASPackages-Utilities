@@ -20,9 +20,27 @@ namespace SAS
         private static LogLevel LogLevel = (LogLevel)(7);
         private static HashSet<string> AllowedTags = new HashSet<string>();
 
-        public static void SetLogLevel(LogLevel level)
+        public static void SetLogLevel(int level)
         {
-            LogLevel = level;
+            LogLevel = (LogLevel)level;
+            Debug.Log($"Updated LogLevel: {LogLevel}");
+        }
+
+        public static void SetLogLevel(LogLevel level, bool isOn)
+        {
+            var newLevel = LogLevel;
+
+            if (isOn)
+                newLevel |= level; // Set bit
+            else
+                newLevel &= ~level; // Clear bit
+
+            SetLogLevel((int)newLevel);
+        }
+        
+        public static bool IsLogLevelEnabled(LogLevel levelToCheck)
+        {
+            return (LogLevel & levelToCheck) != 0;
         }
 
         public static void SetAllowedTags(IEnumerable<string> tags)
@@ -97,7 +115,7 @@ namespace SAS
 
         private static bool TagPassesFilter(string tag)
         {
-             // If no allowed tags or the tag is present in the allowed tags, the filter passes
+            // If no allowed tags or the tag is present in the allowed tags, the filter passes
             return AllowedTags.Count == 0 || AllowedTags.Contains(tag);
         }
 

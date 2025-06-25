@@ -1,36 +1,47 @@
-using UnityEngine;
-using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
+using SAS.Utilities.DeveloperConsole;
 using TMPro;
+using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 public class SuggestionUI : MonoBehaviour
 {
-    [SerializeField] private RectTransform container;
-    [SerializeField] private GameObject suggestionTemplate;
+    [FormerlySerializedAs("container")] [SerializeField]
+    private RectTransform m_Container;
 
-    public Action<string> onSuggestionSelected;
+    [FormerlySerializedAs("suggestionTemplate")] [SerializeField]
+    private GameObject m_SuggestionTemplate;
 
-    private List<GameObject> activeSuggestions = new();
-    private int selectedIndex = -1;
+    private List<GameObject> _activeSuggestions = new();
+    private int _selectedIndex = -1;
 
-    private ConsoleInputActions inputActions;
+    private ConsoleInputActions _inputActions;
+    private DeveloperConsoleBehaviour _developerConsoleUI;
 
     private void Awake()
     {
-        suggestionTemplate.SetActive(false);
+        m_SuggestionTemplate.SetActive(false);
         ClearSuggestions();
 
-        inputActions = new ConsoleInputActions();
-        inputActions.Developer.Navigate.performed += callbackContext => Navigate(callbackContext.ReadValue<Vector2>());
-        inputActions.Developer.AutoComplete.performed += _ => SelectCurrent();
+        _inputActions = new ConsoleInputActions();
+        _inputActions.Developer.Navigate.performed += callbackContext => Navigate(callbackContext.ReadValue<Vector2>());
+        _inputActions.Developer.AutoComplete.performed += _ => SelectCurrent();
+        _developerConsoleUI = GetComponentInParent<DeveloperConsoleBehaviour>();
+        _developerConsoleUI.SuggestionViewChangedEvent += OnSuggestionViewChanged;
     }
 
-    private void OnEnable() => inputActions.Developer.Enable();
-    private void OnDisable() => inputActions.Developer.Disable();
-    private void OnDestroy() => inputActions.Dispose();
+    private void Start()
+    {
+        OnSuggestionViewChanged(_developerConsoleUI.IsTreeViewSuggestion);
+    }
 
-    public void ShowSuggestions(List<string> suggestions)
+    private void OnEnable() => _inputActions.Developer.Enable();
+    private void OnDisable() => _inputActions.Developer.Disable();
+    private void OnDestroy() => _inputActions.Dispose();
+
+    private void ShowSuggestions(List<string> suggestions)
     {
         ClearSuggestions();
 
@@ -42,54 +53,52 @@ public class SuggestionUI : MonoBehaviour
 
         gameObject.SetActive(true);
 
-        for (int i = 0; i < suggestions.Count; i++)
+        foreach (var suggestion in suggestions)
         {
-            string suggestion = suggestions[i];
-            GameObject item = Instantiate(suggestionTemplate, container);
+            GameObject item = Instantiate(m_SuggestionTemplate, m_Container);
             item.SetActive(true);
             var text = item.GetComponentInChildren<TMP_Text>();
             text.text = suggestion;
 
-            var button = item.GetComponent<UnityEngine.UI.Button>();
+            var button = item.GetComponent<Button>();
             if (button != null)
-                button.onClick.AddListener(() => onSuggestionSelected?.Invoke(suggestion));
-
-            activeSuggestions.Add(item);
+                button.onClick.AddListener(() => _developerConsoleUI.ApplySuggestion(suggestion));
+            _activeSuggestions.Add(item);
         }
 
-        selectedIndex = 0;
+        _selectedIndex = 0;
         HighlightSelection();
     }
 
     private void Navigate(Vector2 direction)
     {
-        if (activeSuggestions.Count == 0) return;
+        if (_activeSuggestions.Count == 0) return;
         if (direction.y > 0)
-            selectedIndex = Mathf.Max(selectedIndex - 1, 0);
+            _selectedIndex = Mathf.Max(_selectedIndex - 1, 0);
         else if (direction.y < 0)
-            selectedIndex = Mathf.Min(selectedIndex + 1, activeSuggestions.Count - 1);
+            _selectedIndex = Mathf.Min(_selectedIndex + 1, _activeSuggestions.Count - 1);
         HighlightSelection();
     }
 
     private void SelectCurrent()
     {
-        if (selectedIndex >= 0 && selectedIndex < activeSuggestions.Count)
+        if (_selectedIndex >= 0 && _selectedIndex < _activeSuggestions.Count)
         {
-            string selected = activeSuggestions[selectedIndex].GetComponentInChildren<TMP_Text>().text;
-            onSuggestionSelected?.Invoke(selected);
+            string selected = _activeSuggestions[_selectedIndex].GetComponentInChildren<TMP_Text>().text;
+            _developerConsoleUI.ApplySuggestion(selected);
         }
     }
 
     private void HighlightSelection()
     {
-        for (int i = 0; i < activeSuggestions.Count; i++)
+        for (int i = 0; i < _activeSuggestions.Count; i++)
         {
-            var text = activeSuggestions[i].GetComponentInChildren<TMP_Text>();
-            text.color = (i == selectedIndex) ? Color.yellow : Color.white;
+            var text = _activeSuggestions[i].GetComponentInChildren<TMP_Text>();
+            text.color = (i == _selectedIndex) ? Color.yellow : Color.white;
         }
     }
 
-    public void Hide()
+    private void Hide()
     {
         gameObject.SetActive(false);
         ClearSuggestions();
@@ -97,9 +106,39 @@ public class SuggestionUI : MonoBehaviour
 
     private void ClearSuggestions()
     {
-        foreach (var go in activeSuggestions)
+        foreach (var go in _activeSuggestions)
             Destroy(go);
-        activeSuggestions.Clear();
-        selectedIndex = -1;
+        _activeSuggestions.Clear();
+        _selectedIndex = -1;
+    }
+
+    private void OnInputChanged(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            Hide();
+            return;
+        }
+
+        var suggestions = _developerConsoleUI.DeveloperConsole
+            .GetCommandSuggestions(input);
+        ShowSuggestions(suggestions);
+    }
+
+    private void OnSuggestionViewChanged(bool treeView)
+    {
+        if (!treeView)
+        {
+            _developerConsoleUI.InputChangedEvent += OnInputChanged;
+            _developerConsoleUI.SuggestionAppliedEvent += Hide;
+        }
+        else
+        {
+            _developerConsoleUI.InputChangedEvent -= OnInputChanged;
+            _developerConsoleUI.SuggestionAppliedEvent -= Hide;
+            Hide();
+        }
+
+        gameObject.SetActive(!treeView);
     }
 }

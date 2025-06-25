@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using SAS;
 using SAS.Utilities.DeveloperConsole;
@@ -12,17 +13,17 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
 
     public void LogLevel(string[] args)
     {
-        if (args.Length == 0)
+        if (args.Length < 2)
             return;
         
-        int logLevel = 1;
+        LogLevel logLevel = SAS.LogLevel.None;
         if (args.Contains(SAS.LogLevel.Info.ToString()))
-            logLevel = logLevel << 0;
+            logLevel = SAS.LogLevel.Info;
         if (args.Contains(SAS.LogLevel.Warning.ToString()))
-            logLevel = logLevel << 1;
+            logLevel = SAS.LogLevel.Warning;
         if (args.Contains(SAS.LogLevel.Error.ToString()))
-            logLevel = logLevel << 2;
-        
-        Debug.SetLogLevel((LogLevel)logLevel);
+            logLevel = SAS.LogLevel.Error;
+
+        Debug.SetLogLevel(logLevel, args[1].Equals("On", StringComparison.OrdinalIgnoreCase) ? true : false);
     }
 }

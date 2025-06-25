@@ -1,66 +1,80 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using static UnityEngine.InputSystem.InputAction;
 
 namespace SAS.Utilities.DeveloperConsole
 {
     public class DeveloperConsoleBehaviour : MonoBehaviour
     {
+        public Action<string> InputChangedEvent;
+        public Action<bool> SuggestionViewChangedEvent;
+        public Action SuggestionAppliedEvent;
+
         [SerializeField] private string m_Prefix = string.Empty;
         [SerializeField] private ConsoleCommand[] m_Commands = new ConsoleCommand[0];
-
         [Header("UI")] [SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
         [SerializeField] private TMP_Text m_HelpText = null;
         [SerializeField] private bool m_PauseOnOpen = false;
-        [SerializeField] private SuggestionUI m_SuggestionUI;
+        [SerializeField] private Toggle m_TreeViewSuggestionToggle;
+        [SerializeField] private SuggestionUITreeView m_SuggestionUITreeView;
 
-        private float pausedTimeScale;
-        private DeveloperConsole developerConsole;
-        private ConsoleInputActions inputActions;
+        private float _pausedTimeScale;
+        private DeveloperConsole _developerConsole;
+        private ConsoleInputActions _inputActions;
+        public bool IsTreeViewSuggestion => m_TreeViewSuggestionToggle.isOn;
+
 
         internal DeveloperConsole DeveloperConsole
         {
             get
             {
-                if (developerConsole != null)
+                if (_developerConsole != null)
                 {
-                    return developerConsole;
+                    return _developerConsole;
                 }
 
-                return developerConsole = new DeveloperConsole(m_Prefix, m_Commands);
+                return _developerConsole = new DeveloperConsole(m_Prefix, m_Commands);
             }
         }
 
         private void Awake()
         {
-            pausedTimeScale = Time.timeScale;
-            inputActions = new ConsoleInputActions();
-            inputActions.Developer.ToggleConsole.performed += Toggle;
+            _pausedTimeScale = Time.timeScale;
+            _inputActions = new ConsoleInputActions();
+            _inputActions.Developer.ToggleConsole.performed += Toggle;
 
             if (m_InputField != null)
                 m_InputField.onValueChanged.AddListener(OnInputChanged);
 
-            m_SuggestionUI.onSuggestionSelected = ApplySuggestion;
+            m_TreeViewSuggestionToggle.onValueChanged.AddListener(OnTreeViewSuggestion);
+            OnTreeViewSuggestion(m_TreeViewSuggestionToggle.isOn);
         }
 
-        private void OnEnable() => inputActions.Developer.Enable();
-        private void OnDisable() => inputActions.Developer.Disable();
+        private void OnTreeViewSuggestion(bool treeView)
+        {
+            SuggestionViewChangedEvent?.Invoke(treeView);
+        }
+
+        private void OnEnable() => _inputActions.Developer.Enable();
+        private void OnDisable() => _inputActions.Developer.Disable();
 
         private void Toggle(CallbackContext context)
         {
             if (m_UiCanvas.activeSelf)
             {
                 if (m_InputField != null)
-                    Time.timeScale = pausedTimeScale;
+                    Time.timeScale = _pausedTimeScale;
                 m_UiCanvas.SetActive(false);
             }
             else
             {
                 if (m_PauseOnOpen)
                 {
-                    pausedTimeScale = Time.timeScale;
+                    _pausedTimeScale = Time.timeScale;
                     Time.timeScale = 0;
                 }
 
@@ -68,17 +82,19 @@ namespace SAS.Utilities.DeveloperConsole
                 StartCoroutine(FocusInputFieldNextFrame());
             }
         }
+
         private IEnumerator FocusInputFieldNextFrame()
         {
             yield return null; // wait one frame
             m_InputField.ActivateInputField();
             m_InputField.Select();
         }
+
         public void ProcessCommand(string inputValue)
         {
             DeveloperConsole.ProcessCommand(inputValue, this);
             m_InputField.text = string.Empty;
-            m_SuggestionUI.Hide();
+            SuggestionAppliedEvent?.Invoke();
         }
 
         public void DisplayHelpText(string helpText)
@@ -90,22 +106,15 @@ namespace SAS.Utilities.DeveloperConsole
 
         private void OnInputChanged(string input)
         {
-            if (string.IsNullOrEmpty(input))
-            {
-                m_SuggestionUI.Hide();
-                return;
-            }
-
-            var suggestions = DeveloperConsole.GetCommandSuggestions(input);
-            m_SuggestionUI.ShowSuggestions(suggestions);
+            InputChangedEvent?.Invoke(input);
         }
 
-        private void ApplySuggestion(string suggestion)
+        public void ApplySuggestion(string suggestion)
         {
-            m_InputField.text = developerConsole._prefix + suggestion + " ";
+            m_InputField.text = _developerConsole._prefix + suggestion + " ";
             m_InputField.caretPosition = m_InputField.text.Length;
             m_InputField.Select();
-            m_SuggestionUI.Hide();
+            SuggestionAppliedEvent();
         }
     }
 }
