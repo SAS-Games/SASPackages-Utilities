@@ -102,9 +102,9 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""Navigate"",
-                    ""type"": ""PassThrough"",
+                    ""type"": ""Button"",
                     ""id"": ""d885df25-6dd1-4bd1-b08d-2b58cdf46e90"",
-                    ""expectedControlType"": ""Vector2"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -146,7 +146,7 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""name"": ""Gamepad"",
                     ""id"": ""91c6161d-04a9-404d-9823-c3d4fefae3a9"",
                     ""path"": ""2DVector"",
-                    ""interactions"": """",
+                    ""interactions"": ""Press"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Navigate"",

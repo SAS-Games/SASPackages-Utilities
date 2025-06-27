@@ -100,7 +100,6 @@ public class SuggestionUI : MonoBehaviour
 
     private void Hide()
     {
-        gameObject.SetActive(false);
         ClearSuggestions();
     }
 

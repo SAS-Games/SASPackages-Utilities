@@ -1,17 +1,25 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace SAS.Utilities.DeveloperConsole
 {
     public class SuggestionUITreeView : MonoBehaviour
     {
-        [SerializeField] private RectTransform container;
-        [SerializeField] private GameObject baseCommandTemplate;
-        [SerializeField] private GameObject presetTemplate;
+        [FormerlySerializedAs("container")] [SerializeField]
+        private RectTransform m_BaseCommandContainer;
+
+        [FormerlySerializedAs("baseCommandTemplate")] [SerializeField]
+        private GameObject m_BaseCommandTemplate;
+
+        [FormerlySerializedAs("presetTemplate")] [SerializeField]
+        private GameObject m_PresetTemplate;
 
         public Action<string> onSuggestionSelected;
 
@@ -19,20 +27,106 @@ namespace SAS.Utilities.DeveloperConsole
         private GameObject currentlyExpanded = null;
         private DeveloperConsole _developerConsole;
         private DeveloperConsoleBehaviour _developerConsoleUI;
+        private ConsoleInputActions _inputActions;
+
+        private List<GameObject> navigableItems = new();
+
+        private GameObject highlightedItem = null;
+        private int selectedIndex = -1;
 
         private void Awake()
         {
+            _inputActions = new ConsoleInputActions();
+            _inputActions.Developer.Navigate.performed +=
+                callbackContext => Navigate(callbackContext.ReadValue<Vector2>());
+            _inputActions.Developer.AutoComplete.performed += _ => SelectCurrent();
+
             _developerConsoleUI = GetComponentInParent<DeveloperConsoleBehaviour>();
             _developerConsole = _developerConsoleUI.DeveloperConsole;
             _developerConsoleUI.SuggestionViewChangedEvent += OnSuggestionViewChanged;
         }
 
-        void Start()
+        private void OnEnable()
         {
-            OnSuggestionViewChanged(_developerConsoleUI.IsTreeViewSuggestion);
+            _inputActions.Developer.Enable();
+            ShowCommands();
+            gameObject.SetActive(true);
         }
 
-        public void ShowCommands()
+        private void OnDisable()
+        {
+            _inputActions.Developer.Disable();
+            Hide();
+        }
+
+        private void Navigate(Vector2 readValue)
+        {
+            if (!gameObject.activeInHierarchy || navigableItems.Count == 0)
+                return;
+
+            Vector2 nav = readValue;
+
+            if (nav.y > 0.1f)
+            {
+                selectedIndex = (selectedIndex - 1 + navigableItems.Count) % navigableItems.Count;
+                HighlightSelection();
+            }
+            else if (nav.y < -0.1f)
+            {
+                selectedIndex = (selectedIndex + 1) % navigableItems.Count;
+                HighlightSelection();
+            }
+        }
+
+        private void RebuildNavigableList()
+        {
+            navigableItems.Clear();
+            foreach (var baseItem in activeCommandObjects)
+            {
+                navigableItems.Add(baseItem);
+
+                RectTransform presetContainer = baseItem.transform.Find("PresetContainer") as RectTransform;
+                if (presetContainer != null && presetContainer.gameObject.activeSelf)
+                {
+                    foreach (Transform child in presetContainer)
+                    {
+                        navigableItems.Add(child.gameObject);
+                    }
+                }
+            }
+
+            if (selectedIndex >= navigableItems.Count)
+                selectedIndex = navigableItems.Count - 1;
+        }
+
+        private void HighlightSelection()
+        {
+            if (highlightedItem != null)
+            {
+                var text = highlightedItem.GetComponentInChildren<TMP_Text>();
+                text.color = Color.white;
+            }
+
+            if (selectedIndex >= 0 && selectedIndex < navigableItems.Count)
+            {
+                highlightedItem = navigableItems[selectedIndex];
+                var text = highlightedItem.GetComponentInChildren<TMP_Text>();
+                text.color = Color.yellow;
+                Debug.Log($"{text.text} {highlightedItem.GetComponentInChildren<Button>().transform.parent.name}");
+                StartCoroutine(SelectGameObjectNextFrame(highlightedItem.GetComponentInChildren<Button>().gameObject));
+
+                // ScrollTo(highlightedItem.GetComponent<RectTransform>());
+            }
+        }
+        
+        private IEnumerator SelectGameObjectNextFrame(GameObject go)
+        {
+            yield return null; // Wait for one frame
+            EventSystem.current.SetSelectedGameObject(null); // Optional: Clear first
+            EventSystem.current.SetSelectedGameObject(go);
+        }
+
+        private void ShowCommands()
         {
             ClearSuggestions();
             var consoleCommands = _developerConsole.ConsoleCommands;
@@ -41,18 +135,21 @@ namespace SAS.Utilities.DeveloperConsole
                 CreateBaseCommandUI(baseCommand.Name);
             }
 
+            RebuildNavigableList();
             gameObject.SetActive(true);
         }
 
         private void CreateBaseCommandUI(string baseCommand)
         {
-            GameObject baseItem = Instantiate(baseCommandTemplate, container);
+            GameObject baseItem = Instantiate(m_BaseCommandTemplate, m_BaseCommandContainer);
             baseItem.SetActive(true);
 
             TMP_Text label = baseItem.GetComponentInChildren<TMP_Text>();
             label.text = baseCommand;
+            baseItem.name = baseCommand;
 
-            RectTransform presetContainer = baseItem.transform.Find("PresetContainer").GetComponent<RectTransform>();
+            RectTransform presetContainer =
+                baseItem.transform.Find("PresetContainer").GetComponent<RectTransform>();
             presetContainer.gameObject.SetActive(false);
 
             Button toggleButton = baseItem.GetComponentInChildren<Button>();
@@ -78,31 +175,34 @@ namespace SAS.Utilities.DeveloperConsole
                     .ToList();
 
                 CreatePresetUI(presetContainer, suggestions);
+                RebuildNavigableList();
             }
         }
 
-        private void CreatePresetUI(Transform parent, List<string> suggestions)
+        private void CreatePresetUI(RectTransform presetCommandsContainer, List<string> suggestions)
         {
             // Clear old presets
-            foreach (Transform child in parent)
+            foreach (Transform child in presetCommandsContainer)
                 Destroy(child.gameObject);
 
             foreach (string suggestion in suggestions)
             {
-                GameObject presetItem = Instantiate(presetTemplate, parent);
+                GameObject presetItem = Instantiate(m_PresetTemplate, presetCommandsContainer);
                 presetItem.SetActive(true);
 
                 TMP_Text label = presetItem.GetComponentInChildren<TMP_Text>();
                 label.text = suggestion;
+                LayoutRebuilder.ForceRebuildLayoutImmediate(presetCommandsContainer);
 
                 //Button presetButton = presetItem.GetComponent<Button>();
                 //presetButton.onClick.AddListener(() => onSuggestionSelected?.Invoke(suggestion));
             }
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate(m_BaseCommandContainer);
         }
 
         private void Hide()
         {
-            gameObject.SetActive(false);
             ClearSuggestions();
         }
 
@@ -121,6 +221,15 @@ namespace SAS.Utilities.DeveloperConsole
             else
                 ShowCommands();
             gameObject.SetActive(treeView);
+        }
+
+        private void SelectCurrent()
+        {
+            // if (_selectedIndex >= 0 && _selectedIndex < _activeSuggestions.Count)
+            // {
+            //     string selected = _activeSuggestions[_selectedIndex].GetComponentInChildren<TMP_Text>().text;
+            //     _developerConsoleUI.ApplySuggestion(selected);
+            // }
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using static UnityEngine.InputSystem.InputAction;
 
@@ -17,6 +18,7 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private ConsoleCommand[] m_Commands = new ConsoleCommand[0];
         [Header("UI")] [SerializeField] private GameObject m_UiCanvas = null;
         [SerializeField] private TMP_InputField m_InputField = null;
+        [SerializeField] private Button m_SubmitButton = null;
         [SerializeField] private TMP_Text m_HelpText = null;
         [SerializeField] private bool m_PauseOnOpen = false;
         [SerializeField] private Toggle m_TreeViewSuggestionToggle;
@@ -90,9 +92,9 @@ namespace SAS.Utilities.DeveloperConsole
             m_InputField.Select();
         }
 
-        public void ProcessCommand(string inputValue)
+        public void ProcessCommand()
         {
-            DeveloperConsole.ProcessCommand(inputValue, this);
+            DeveloperConsole.ProcessCommand( m_InputField.text, this);
             m_InputField.text = string.Empty;
             SuggestionAppliedEvent?.Invoke();
         }
@@ -114,6 +116,7 @@ namespace SAS.Utilities.DeveloperConsole
             m_InputField.text = _developerConsole._prefix + suggestion + " ";
             m_InputField.caretPosition = m_InputField.text.Length;
             m_InputField.Select();
+            EventSystem.current.SetSelectedGameObject(m_SubmitButton.gameObject);
             SuggestionAppliedEvent();
         }
     }
