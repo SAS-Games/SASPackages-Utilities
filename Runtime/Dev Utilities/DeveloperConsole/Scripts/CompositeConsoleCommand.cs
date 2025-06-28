@@ -17,10 +17,16 @@ namespace SAS.Utilities.DeveloperConsole
             public UnityEvent<string[]> Action;
         }
 
-        [FormerlySerializedAs("subCommands")] [SerializeField] private List<SubCommand> m_SubCommands = new();
+        [FormerlySerializedAs("subCommands")] [SerializeField]
+        private List<SubCommand> m_SubCommands = new();
+
         public override bool HelpRequest(string command, string[] args, out string message)
         {
-            string subCommand = command.Split(".")[1];
+            var fullCommand = command.Split(".");
+            if (fullCommand.Length <= 1)
+                return base.HelpRequest(command, args, out message);
+
+            string subCommand = fullCommand[1];
 
             var sub = m_SubCommands.Find(s => s.Name.Equals(subCommand, StringComparison.OrdinalIgnoreCase));
             if (sub == null)
@@ -35,7 +41,8 @@ namespace SAS.Utilities.DeveloperConsole
             }
         }
 
-        public sealed override bool Process(DeveloperConsoleBehaviour developerConsole, string command, string[] args = null)
+        public sealed override bool Process(DeveloperConsoleBehaviour developerConsole, string command,
+            string[] args = null)
         {
             string subCommand = command.Split(".")[1];
 
@@ -52,6 +59,7 @@ namespace SAS.Utilities.DeveloperConsole
             get
             {
                 List<string> presets = new();
+                presets.AddRange(base.Presets);
                 foreach (var s in m_SubCommands)
                 {
                     presets.Add($"{Name}.{s.Name}");
@@ -71,9 +79,7 @@ namespace SAS.Utilities.DeveloperConsole
         public override bool Contains(string commandName)
         {
             var commandSplit = commandName.Trim().Split(".");
-            if (commandSplit.Length > 1)
-                return base.Contains(commandSplit[0]);
-            return false;
+            return base.Contains(commandSplit[0]);
         }
     }
 }
