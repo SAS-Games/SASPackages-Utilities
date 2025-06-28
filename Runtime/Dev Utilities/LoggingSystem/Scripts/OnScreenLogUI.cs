@@ -68,7 +68,7 @@ namespace SAS
                 LogLevel.Error => Color.red,
                 _ => Color.white
             };
-            tmp.text = $"[{timestamp}] Tag: [{tagDisplay}] {message}";
+            tmp.text = $"[{timestamp}] Tag: {tagDisplay} {message}";
             tmp.color = baseColor;
             _activeLogs.Add(new OnScreenLogUI.LogEntry
                 { GameObject = entryGO, Text = tmp, CreationTime = Time.realtimeSinceStartup });

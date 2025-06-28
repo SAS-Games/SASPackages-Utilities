@@ -3,6 +3,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using static UnityEngine.InputSystem.InputAction;
 
@@ -22,7 +23,7 @@ namespace SAS.Utilities.DeveloperConsole
         [SerializeField] private TMP_Text m_HelpText = null;
         [SerializeField] private bool m_PauseOnOpen = false;
         [SerializeField] private Toggle m_TreeViewSuggestionToggle;
-        [SerializeField] private SuggestionUITreeView m_SuggestionUITreeView;
+        [FormerlySerializedAs("m_SuggestionUITreeView")] [SerializeField] private SuggestionTreeView mSuggestionTreeView;
 
         private float _pausedTimeScale;
         private DeveloperConsole _developerConsole;
@@ -94,7 +95,7 @@ namespace SAS.Utilities.DeveloperConsole
 
         public void ProcessCommand()
         {
-            DeveloperConsole.ProcessCommand( m_InputField.text, this);
+            DeveloperConsole.ProcessCommand(m_InputField.text, this);
             m_InputField.text = string.Empty;
             SuggestionAppliedEvent?.Invoke();
         }
@@ -116,8 +117,15 @@ namespace SAS.Utilities.DeveloperConsole
             m_InputField.text = _developerConsole._prefix + suggestion + " ";
             m_InputField.caretPosition = m_InputField.text.Length;
             m_InputField.Select();
+            StartCoroutine(SelectGameObjectNextFrame());
+            SuggestionAppliedEvent?.Invoke();
+        }
+
+        private IEnumerator SelectGameObjectNextFrame()
+        {
+            yield return null;
+            EventSystem.current.SetSelectedGameObject(null);
             EventSystem.current.SetSelectedGameObject(m_SubmitButton.gameObject);
-            SuggestionAppliedEvent();
         }
     }
 }
