@@ -14,10 +14,13 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
 
     private GameObject _onScreenLog;
 
-    public void LogLevel(string[] args)
+    public void LogLevel(string[] args, CommandResult result)
     {
         if (args.Length < 2)
+        {
+            result.Success = false;
             return;
+        }
 
         LogLevel logLevel = SAS.LogLevel.None;
         if (args.Contains(SAS.LogLevel.Info.ToString()))
@@ -26,15 +29,18 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
             logLevel = SAS.LogLevel.Warning;
         if (args.Contains(SAS.LogLevel.Error.ToString()))
             logLevel = SAS.LogLevel.Error;
-
         Debug.SetLogLevel(logLevel, args[1].Equals("On", StringComparison.OrdinalIgnoreCase) ? true : false);
+        result.Success = true;
     }
 
-    public void ShowOnScreen(string[] args)
+    public void ShowOnScreen(string[] args, CommandResult result)
     {
         if (args.Length < 1)
+        {
+            result.Success = false;
             return;
-        
+        }
+
         if (args[0].Equals("On", StringComparison.OrdinalIgnoreCase))
         {
             if (_onScreenLog == null)
@@ -43,5 +49,20 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
         }
         else if (args[0].Equals("Off", StringComparison.OrdinalIgnoreCase))
             _onScreenLog.SetActive(false);
+
+        result.Success = true;
+    }
+
+    public void SetTags(string[] args, CommandResult result)
+    {
+        if (args.Length < 1)
+        {
+            result.Success = false;
+            return;
+        }
+
+        var tags = args[0].Split('|');
+        Debug.SetAllowedTags(tags);
+        result.Success = true;
     }
 }

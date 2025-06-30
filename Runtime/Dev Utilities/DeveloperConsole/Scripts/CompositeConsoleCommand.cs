@@ -9,12 +9,23 @@ namespace SAS.Utilities.DeveloperConsole
     public abstract class CompositeConsoleCommand : ConsoleCommand
     {
         [Serializable]
+        public class BoolResultUnityEvent : UnityEvent<string[], CommandResult>
+        {
+        }
+
+        public class CommandResult
+        {
+            public bool Success;
+            public string Message; //todo: need to set this, yet to be evaluated the need of custom message 
+        }
+
+        [Serializable]
         private class SubCommand
         {
             public string Name;
             public string HelpText;
             public string[] Presets;
-            public UnityEvent<string[]> Action;
+            public UnityEvent<string[], CommandResult> Action;
         }
 
         [FormerlySerializedAs("subCommands")] [SerializeField]
@@ -50,8 +61,9 @@ namespace SAS.Utilities.DeveloperConsole
             if (sub == null)
                 return false;
 
-            sub.Action.Invoke(args);
-            return true;
+            var result = new CommandResult();
+            sub.Action.Invoke(args, result);
+            return result.Success;
         }
 
         public sealed override string[] Presets
