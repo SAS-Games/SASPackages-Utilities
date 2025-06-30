@@ -57,16 +57,20 @@ namespace SAS.Utilities.DeveloperConsole
                     continue;
 
                 if (command.HelpRequest(commandInput, args, out var message))
+                {
                     developerConsole.DisplayHelpText(message);
+                    return true;
+                }
                 else
                 {
                     if (!command.Process(developerConsole, commandInput, args))
                     {
-                        Debug.LogError($"Failed to execute the Command '{commandInput}'");
+                        developerConsole.DisplayHelpText($"Failed to execute the Command '{commandInput}'");
+                        Debug.LogError($"Failed to execute the Command '{commandInput}' \n{message}");
                         return false;
                     }
                 }
-
+                developerConsole.DisplayHelpText($"");
                 return true;
             }
 

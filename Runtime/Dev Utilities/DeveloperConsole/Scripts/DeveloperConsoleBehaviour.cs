@@ -29,6 +29,7 @@ namespace SAS.Utilities.DeveloperConsole
         private DeveloperConsole _developerConsole;
         private ConsoleInputActions _inputActions;
         public bool IsTreeViewSuggestion => m_TreeViewSuggestionToggle.isOn;
+        private GameObject _lastSelectedGameObject;
 
 
         internal DeveloperConsole DeveloperConsole
@@ -62,7 +63,11 @@ namespace SAS.Utilities.DeveloperConsole
             SuggestionViewChangedEvent?.Invoke(treeView);
         }
 
-        private void OnEnable() => _inputActions.Developer.Enable();
+        private void OnEnable()
+        {
+            _inputActions.Developer.Enable();
+        }
+
         private void OnDisable() => _inputActions.Developer.Disable();
 
         private void Toggle(CallbackContext context)
@@ -72,6 +77,8 @@ namespace SAS.Utilities.DeveloperConsole
                 if (m_InputField != null)
                     Time.timeScale = _pausedTimeScale;
                 m_UiCanvas.SetActive(false);
+                EventSystem.current.SetSelectedGameObject(null);
+                EventSystem.current.SetSelectedGameObject(_lastSelectedGameObject);
             }
             else
             {
@@ -82,6 +89,7 @@ namespace SAS.Utilities.DeveloperConsole
                 }
 
                 m_UiCanvas.SetActive(true);
+                _lastSelectedGameObject = EventSystem.current.currentSelectedGameObject;
                 StartCoroutine(FocusInputFieldNextFrame());
             }
         }

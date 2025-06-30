@@ -372,6 +372,17 @@ public partial class @ConsoleInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""AutoComplete"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""49158a60-53df-4624-9d61-7eb99dbd9022"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AutoComplete"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }

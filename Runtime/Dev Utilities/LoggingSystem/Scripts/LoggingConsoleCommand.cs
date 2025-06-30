@@ -61,7 +61,16 @@ public class LoggingConsoleCommand : CompositeConsoleCommand
             return;
         }
 
-        var tags = args[0].Split('|');
+        var tags = args[0].Split('|')
+            .Select(t => t.Trim())
+            .Where(t => !string.IsNullOrEmpty(t))
+            .ToArray();
+
+        if (tags.Length == 0)
+        {
+            result.Success = false;
+            return;
+        }
         Debug.SetAllowedTags(tags);
         result.Success = true;
     }
