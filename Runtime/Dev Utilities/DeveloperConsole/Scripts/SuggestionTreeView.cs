@@ -34,10 +34,10 @@ namespace SAS.Utilities.DeveloperConsole
         private void ShowCommands()
         {
             ClearSuggestions();
+            gameObject.SetActive(true);
             foreach (var command in _developerConsole.ConsoleCommands)
                 CreateBaseCommandUI(command.Name);
             RebuildNavigableList();
-            gameObject.SetActive(true);
         }
 
         protected override void Navigate(Vector2 direction)
@@ -97,6 +97,7 @@ namespace SAS.Utilities.DeveloperConsole
             baseItem.GetComponentInChildren<Button>().onClick
                 .AddListener(() => OnCommandSelected(label, baseCommand, presetContainer));
             _activeCommandObjects.Add(baseItem);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(m_BaseCommandContainer);
         }
 
         private void OnCommandSelected(TMP_Text label, string baseCommand, RectTransform presetContainer)
