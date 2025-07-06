@@ -9,13 +9,16 @@ namespace SAS.Utilities.TagSystem
     {
         [SerializeField] public bool m_EarlyBinding = false;
 
-        [Tooltip("If True, this GameObject will be marked as DontDestroyOnLoad. Make Sure Only one context is there for which  isCrossContextBinder is true")]
-        [field: SerializeField] public bool IsCrossContextBinder { get; private set; }
+        [Tooltip("If Scope.SceneLevel, this GameObject will be marked as DontDestroyOnLoad. Make Sure Only one context is there for which Scope is SceneLevel")]
+        [SerializeField] private Scope m_Scope = Scope.SceneLevel;
 
         [SerializeField] public Binder m_Binder;
+        public bool IsCrossContextBinder => m_Scope == Scope.ProjectLevel;
+        Scope IContextBinder.BinderScope => m_Scope;
 
         protected override void Awake()
         {
+            m_Binder = Instantiate(m_Binder);
             if (IsCrossContextBinder)
             {
                 if (!ComponentExtensions._cachedContext.TryGetValue("DontDestroyOnLoad", out var context))
@@ -30,6 +33,8 @@ namespace SAS.Utilities.TagSystem
             if (m_EarlyBinding)
                 m_Binder.CreateAllInstance(this);
         }
+
+        public Scope BinderScope { get; }
 
         object IContextBinder.GetOrCreate(Type type, Tag tag)
         {
