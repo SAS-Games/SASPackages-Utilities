@@ -9,8 +9,10 @@ namespace SAS.Utilities.TagSystem
     {
         [SerializeField] public bool m_EarlyBinding = false;
 
-        [Tooltip("If Scope.SceneLevel, this GameObject will be marked as DontDestroyOnLoad. Make Sure Only one context is there for which Scope is SceneLevel")]
-        [SerializeField] private Scope m_Scope = Scope.SceneLevel;
+        [Tooltip(
+            "If Scope.SceneLevel, this GameObject will be marked as DontDestroyOnLoad. Make Sure Only one context is there for which Scope is SceneLevel")]
+        [SerializeField]
+        private Scope m_Scope = Scope.SceneLevel;
 
         [SerializeField] public Binder m_Binder;
         public bool IsCrossContextBinder => m_Scope == Scope.ProjectLevel;
@@ -18,9 +20,10 @@ namespace SAS.Utilities.TagSystem
 
         protected override void Awake()
         {
+            ++m_Binder.refCount;
             if (m_Scope == Scope.ObjectLevel)
                 m_Binder = Instantiate(m_Binder);
-            
+
             if (IsCrossContextBinder)
             {
                 if (!ComponentExtensions._cachedContext.TryGetValue("DontDestroyOnLoad", out var context))
@@ -35,8 +38,6 @@ namespace SAS.Utilities.TagSystem
             if (m_EarlyBinding)
                 m_Binder.CreateAllInstance(this);
         }
-
-        public Scope BinderScope { get; }
 
         object IContextBinder.GetOrCreate(Type type, Tag tag)
         {
@@ -76,7 +77,13 @@ namespace SAS.Utilities.TagSystem
         {
             if (gameObject != null && gameObject.scene != null && !string.IsNullOrEmpty(gameObject.scene.name))
                 ComponentExtensions._cachedContext.Remove(gameObject?.scene.name);
-            m_Binder?.Clear();
+            if (m_Binder != null)
+            {
+                --m_Binder.refCount;
+                if (m_Binder.refCount==0)
+                    m_Binder.Clear();
+            }
+
             base.OnDestroy();
         }
     }

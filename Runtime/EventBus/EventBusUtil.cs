@@ -66,12 +66,23 @@ public static class EventBusUtil {
     /// <summary>
     /// Clears (removes all listeners from) all event buses in the application.
     /// </summary>
-    public static void ClearAllBuses() {
+    public static void ClearAllBuses()
+    {
         Debug.Log("Clearing all buses...");
-        for (int i = 0; i < EventBusTypes.Count; i++) {
+        for (int i = 0; i < EventBusTypes.Count; i++)
+        {
             var busType = EventBusTypes[i];
+
+            // Skip generic definitions like EventBus<> with open parameters
+            if (busType.ContainsGenericParameters)
+            {
+                Debug.LogWarning($"Skipping generic bus type: {busType}");
+                continue;
+            }
+
             var clearMethod = busType.GetMethod("Clear", BindingFlags.Static | BindingFlags.NonPublic);
             clearMethod?.Invoke(null, null);
         }
     }
+
 }

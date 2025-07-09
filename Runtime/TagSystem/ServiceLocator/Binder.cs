@@ -67,7 +67,7 @@ namespace SAS.Utilities.TagSystem
         [SerializeField] private Binding[] m_Bindings;
         private Dictionary<Key, object> _cachedBindings = new Dictionary<Key, object>();
         internal IReadOnlyDictionary<Key, object> CachedBindings => _cachedBindings;
-
+        internal int refCount;
         private Key GetKey(Type type, Tag tag)
         {
             return new Key { type = type, tag = tag };
