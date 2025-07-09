@@ -18,7 +18,9 @@ namespace SAS.Utilities.TagSystem
 
         protected override void Awake()
         {
-            m_Binder = Instantiate(m_Binder);
+            if (m_Scope == Scope.ObjectLevel)
+                m_Binder = Instantiate(m_Binder);
+            
             if (IsCrossContextBinder)
             {
                 if (!ComponentExtensions._cachedContext.TryGetValue("DontDestroyOnLoad", out var context))
