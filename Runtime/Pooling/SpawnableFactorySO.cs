@@ -7,11 +7,11 @@ namespace SAS.Pool
     {
         [SerializeField] private GameObject m_Prefab = default;
 
-        public override bool Create(out Poolable item)
+        public override bool Create(string id, out Poolable item)
         {
             item = Instantiate(m_Prefab).GetComponent<Poolable>();
-             if(item == null) 
-                 Debug.LogError($"Object is not having the Poolable component attached, factory is {this.name}");
+            if (item == null)
+                Debug.LogError($"Object is not having the Poolable component attached, factory is {this.name}");
             return item != null;
         }
     }

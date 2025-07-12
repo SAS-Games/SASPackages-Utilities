@@ -6,6 +6,6 @@ namespace SAS.Pool
 {
     public interface IFactory<T>
     {
-        bool Create(out T item);
+        bool Create(string id, out T item);
     }
 }

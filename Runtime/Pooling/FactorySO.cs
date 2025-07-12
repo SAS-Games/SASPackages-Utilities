@@ -1,11 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace SAS.Pool
 {
     public abstract class FactorySO<T> : ScriptableObject, IFactory<T>
     {
-        public abstract bool Create(out T item);
+        public abstract bool Create(string id, out T item);
     }
 }

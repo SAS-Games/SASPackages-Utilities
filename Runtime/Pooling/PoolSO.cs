@@ -2,22 +2,22 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SAS.Pool
 {
     public abstract class PoolSO<T> : ScriptableObject, IPool<T>
     {
+        [SerializeField] private string m_ID = "";
         protected readonly Stack<T> Available = new Stack<T>();
         protected abstract IFactory<T> Factory { get; }
-
-
         public int Inactive => Available.Count;
         public int Capacity => _active + Inactive;
         public int Active => _active;
 
         protected virtual bool Create(out T item)
         {
-            return Factory.Create(out item);
+            return Factory.Create(m_ID, out item);
         }
 
         [NonSerialized] protected bool _prewarmed = false;
@@ -77,6 +77,5 @@ namespace SAS.Pool
         {
             Available.Clear();
         }
-
     }
 }
