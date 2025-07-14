@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using ZLinq;
 
 namespace SAS.Utilities.TagSystem
 {
@@ -113,7 +113,7 @@ namespace SAS.Utilities.TagSystem
 
             var baseTypes = type.GetInterfaces();
             if (type.BaseType != null)
-                baseTypes = baseTypes.AsValueEnumerable().Prepend(type.BaseType).ToArray();
+                baseTypes = baseTypes.Prepend(type.BaseType).ToArray();
 
             foreach (var baseType in baseTypes)
                 Add(baseType, instance, tag);
@@ -139,10 +139,7 @@ namespace SAS.Utilities.TagSystem
                         $"Binding for interface type '{type.FullName}' with tag '{tag}' exists but is excluded for the current platform: {Application.platform}.");
                 }
                 else
-                {
-                    Debug.LogError(
-                        $"No binding found for interface type '{type.FullName}' with tag '{tag}'.");
-                }
+                    Debug.LogError($"No binding found for interface type '{type.FullName}' with tag '{tag}'.");
 
                 return null;
             }
