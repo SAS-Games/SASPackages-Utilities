@@ -122,7 +122,7 @@ namespace SAS.Utilities.TagSystem
                     {
                         var message = $"Failed to inject `{field.FieldType.Name}` into `{field.DeclaringType.FullName}.{field.Name}` on `{component.name}`.\n" +
                                       $"No matching binding found in Object, Scene, or Project-level contexts.";
-                        Debug.LogError(message, "Injection Error");
+                        Debug.LogError(message);
                     }
                 }
             }

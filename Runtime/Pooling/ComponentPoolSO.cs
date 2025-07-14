@@ -29,7 +29,7 @@ namespace SAS.Pool
         {
             _parent = t;
             PoolRoot.SetParent(_parent);
-            SceneUtility.MoveGameObjectToScene(PoolRoot.gameObject, scene);
+            SceneManager.MoveGameObjectToScene(PoolRoot.gameObject, scene);
         }
 
         protected override bool Create(out T item)
