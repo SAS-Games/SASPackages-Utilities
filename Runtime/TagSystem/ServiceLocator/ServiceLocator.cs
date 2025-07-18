@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,11 +7,28 @@ namespace SAS.Utilities.TagSystem
 {
     public class ServiceLocator : IServiceLocator
     {
+        public class WeakService
+        {
+            public WeakReference<object> Reference;
+
+            public WeakService(object service)
+            {
+                Reference = new WeakReference<object>(service);
+            }
+
+            public bool TryGet(out object service)
+            {
+                return Reference.TryGetTarget(out service);
+            }
+
+            public bool IsAlive => Reference.TryGetTarget(out _);
+        }
+
         public interface IService
         {
         }
 
-        private Dictionary<Key, List<object>> _services = new Dictionary<Key, List<object>>();
+        private Dictionary<Key, List<WeakService>> _services = new();
 
         public void Add<T>(object service, Tag tag = Tag.None)
         {
@@ -23,12 +40,12 @@ namespace SAS.Utilities.TagSystem
             var key = GetKey(type, tag);
             if (!_services.TryGetValue(key, out var serviceList))
             {
-                serviceList = new List<object>();
+                serviceList = new List<WeakService>();
                 _services.Add(key, serviceList);
             }
 
-            if (!serviceList.Contains(service))
-                serviceList.Add(service);
+            if (!serviceList.Any(ws => ws.TryGet(out var s) && s == service))
+                serviceList.Add(new WeakService(service));
 
             var baseTypes = type.GetInterfaces();
             if (type.BaseType != null)
@@ -37,6 +54,7 @@ namespace SAS.Utilities.TagSystem
             foreach (var baseType in baseTypes)
                 Add(baseType, service, tag);
         }
+
 
         private Key GetKey(Type type, Tag tag)
         {
@@ -58,20 +76,27 @@ namespace SAS.Utilities.TagSystem
 
         public bool TryGet(Type type, out object service, Tag tag = Tag.None)
         {
+            service = null;
             var key = GetKey(type, tag);
-            if (!_services.TryGetValue(key, out var services))
+
+            if (!_services.TryGetValue(key, out var list))
+                return false;
+
+            // Clean up dead references
+            list.RemoveAll(w => !w.IsAlive);
+
+            if (list.Count == 0)
             {
-                service = null;
-                Debug.LogError($"Required service of type {type.Name} with tag {tag} is not found");
+                _services.Remove(key);
                 return false;
             }
 
-            if (services.Count > 1)
-                Debug.LogError($"There is more than one IService that implements {type.Name}");
+            if (list.Count > 1)
+                Debug.LogError($"More than one service registered for {type.Name}");
 
-            service = services[0];
-            return true;
+            return list[0].TryGet(out service);
         }
+
 
         public IEnumerable<T> GetAll<T>(Tag tag = Tag.None)
         {
@@ -80,11 +105,19 @@ namespace SAS.Utilities.TagSystem
 
         public IEnumerable<object> GetAll(Type type, Tag tag = Tag.None)
         {
-            if (_services.TryGetValue(GetKey(type, tag), out var value))
-                return value;
-            else
-                return Array.Empty<object>();
+            if (_services.TryGetValue(GetKey(type, tag), out var list))
+            {
+                list.RemoveAll(ws => !ws.IsAlive);
+
+                foreach (var ws in list)
+                {
+                    if (ws.Reference.TryGetTarget(out var service))
+                        yield return service;
+                }
+            }
+            yield break;
         }
+
 
         public T GetOrCreate<T>(Tag tag = Tag.None)
         {
@@ -112,7 +145,7 @@ namespace SAS.Utilities.TagSystem
         public bool Remove(Type type, Tag tag = Tag.None)
         {
             var key = GetKey(type, tag);
-            return !_services.Remove(key);
+            return _services.Remove(key);
         }
 
         public void OnInstanceCreated()
