@@ -7,7 +7,16 @@ namespace SAS.Utilities.TagSystem
 {
     public interface IBindable
     {
-        void OnInstanceCreated();
+    }
+
+    public interface IDestroyable
+    {
+        void OnDestroyed();
+    }
+
+    public interface IInitializable
+    {
+        void OnCreated();
     }
 
     [Serializable, CreateAssetMenu(menuName = "SAS/Binder")]
@@ -48,7 +57,7 @@ namespace SAS.Utilities.TagSystem
                     instance = Activator.CreateInstance(Type.GetType(m_Type), new[] { contextBinder });
                 }
 
-                InvokeInjectionEvent((IBindable)instance);
+                InvokeInjectionEvent(instance);
                 return instance;
             }
 
@@ -57,9 +66,10 @@ namespace SAS.Utilities.TagSystem
                 return PlatformUtils.IsPlatformExcluded(m_ExcludedPlatforms);
             }
 
-            private void InvokeInjectionEvent(IBindable bindable)
+            private void InvokeInjectionEvent(object instance)
             {
-                bindable.OnInstanceCreated();
+                if (instance is IInitializable initializable)
+                    initializable.OnCreated();
             }
         }
 
@@ -135,8 +145,7 @@ namespace SAS.Utilities.TagSystem
 
                 if (potentialBinding != null && potentialBinding.IsPlatformExcluded())
                 {
-                    Debug.LogError(
-                        $"Binding for interface type '{type.FullName}' with tag '{tag}' exists but is excluded for the current platform: {Application.platform}.");
+                    Debug.LogError($"Binding for interface type '{type.FullName}' with tag '{tag}' exists but is excluded for the current platform: {Application.platform}.");
                 }
                 else
                     Debug.LogError($"No binding found for interface type '{type.FullName}' with tag '{tag}'.");
@@ -149,6 +158,11 @@ namespace SAS.Utilities.TagSystem
 
         internal void Clear()
         {
+            foreach (var binding in _cachedBindings)
+            {
+                if (binding.Value is IDestroyable destroyable)
+                    destroyable.OnDestroyed();
+            }
             _cachedBindings.Clear();
         }
     }

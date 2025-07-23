@@ -64,8 +64,4 @@ public class JsonFileSaveSystem : ISaveSystem
             Debug.LogError($"Failed to save file: {ex.Message}");
         }
     }
-
-    void IBindable.OnInstanceCreated()
-    {
-    }
 }

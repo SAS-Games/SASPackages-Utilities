@@ -7,8 +7,4 @@ public class UserModel : IUserModel
     {
         return 0;
     }
-
-    void IBindable.OnInstanceCreated()
-    {
-    }
 }

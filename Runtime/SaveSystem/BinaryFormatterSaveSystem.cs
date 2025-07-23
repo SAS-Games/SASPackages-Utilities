@@ -68,8 +68,4 @@ public class BinaryFormatterSaveSystem : ISaveSystem
             Debug.LogError($"Failed to save file: {ex.Message}");
         }
     }
-
-    void IBindable.OnInstanceCreated()
-    {
-    }
 }
