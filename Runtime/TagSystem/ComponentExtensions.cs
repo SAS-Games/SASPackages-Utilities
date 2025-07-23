@@ -175,7 +175,7 @@ namespace SAS.Utilities.TagSystem
         private static bool TryGetSceneLevelContext(GameObject gameObject, out IContextBinder context)
         {
             context = null;
-            if (gameObject.scene.isLoaded && !_cachedContext.TryGetValue(gameObject.scene.name, out context))
+             if (!_cachedContext.TryGetValue(gameObject.scene.name, out context) && gameObject.scene.isLoaded)
             {
                 var scene = gameObject.scene;
                 var rootObjects = scene.GetRootGameObjects();
@@ -192,7 +192,7 @@ namespace SAS.Utilities.TagSystem
                 }
                 return false;
             }
-            return true;
+             return context != null;
         }
 
         private static bool Inject(IContextBinder context, object instance, FieldInfo field, InjectAttribute requirement)
