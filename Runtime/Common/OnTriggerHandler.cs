@@ -43,7 +43,6 @@ public class OnTriggerHandler : MonoBehaviour
         {
             col.isTrigger = true;
             UnityEditor.EditorUtility.SetDirty(col);
-            col.hideFlags = HideFlags.NotEditable;
         }
     }
 #endif
