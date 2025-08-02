@@ -1,8 +1,8 @@
-using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using System.Linq;
 
+[RequireComponent(typeof(Collider))]
 public class OnTriggerHandler : MonoBehaviour
 {
     [SerializeField] private string[] m_CollisionTags = { "Player" };
@@ -24,4 +24,27 @@ public class OnTriggerHandler : MonoBehaviour
             m_OnTriggerExitAction?.Invoke(other.gameObject);
         }
     }
+
+#if UNITY_EDITOR
+    private void Reset()
+    {
+        EnsureTriggerCollider();
+    }
+
+    private void OnValidate()
+    {
+        EnsureTriggerCollider();
+    }
+
+    private void EnsureTriggerCollider()
+    {
+        Collider col = GetComponent<Collider>();
+        if (col != null && !col.isTrigger)
+        {
+            col.isTrigger = true;
+            UnityEditor.EditorUtility.SetDirty(col);
+            col.hideFlags = HideFlags.NotEditable;
+        }
+    }
+#endif
 }
