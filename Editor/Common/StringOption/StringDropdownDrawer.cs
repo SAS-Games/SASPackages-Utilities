@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Reflection;
 using System.Collections.Generic;
+using System;
 
 [CustomPropertyDrawer(typeof(StringDropdownAttribute))]
 public class StringDropdownDrawer : PropertyDrawer
@@ -11,6 +12,7 @@ public class StringDropdownDrawer : PropertyDrawer
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         var attr = (StringDropdownAttribute)attribute;
+
         var targetObject = property.serializedObject.targetObject;
         StringOptions stringOptions = null;
 
@@ -20,6 +22,14 @@ public class StringDropdownDrawer : PropertyDrawer
             var fieldInfo = targetObject.GetType().GetField(attr.SourceFieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             if (fieldInfo != null)
                 stringOptions = fieldInfo.GetValue(targetObject) as StringOptions;
+            else
+            {
+                var sourceFieldName = attr.SourceFieldName;
+                // If it doesn't contain ".asset", append it
+                if (!sourceFieldName.EndsWith(".asset", StringComparison.OrdinalIgnoreCase))
+                    sourceFieldName += ".asset";
+                stringOptions = EditorGUIUtility.Load($"StringOptions/{sourceFieldName}") as StringOptions;
+            }
         }
 
         // If no field was provided or the value is null, load default
@@ -35,37 +45,39 @@ public class StringDropdownDrawer : PropertyDrawer
         var availableOptions = stringOptions.Values;
         string currentValue = property.stringValue;
 
-        bool valueInList = availableOptions.Contains(currentValue);
+        // Prepare dropdown list
+        List<string> displayList = new List<string> { "<None>" }; // This represents an empty string
 
-        List<string> displayList = new List<string>();
+        int selectedIndex = 0; // Default to <None>
 
-        if (!valueInList && !string.IsNullOrEmpty(currentValue))
-            displayList.Add($"❌ {currentValue} (missing)"); // Show invalid entry with red highlight
-
-        displayList.AddRange(availableOptions);
-
-        int selectedIndex = Mathf.Max(0, displayList.IndexOf(currentValue));
-
-        if (!valueInList && !string.IsNullOrEmpty(currentValue))
-            selectedIndex = 0;
-        else
+        // Add actual options
+        for (int i = 0; i < availableOptions.Count; i++)
         {
-            selectedIndex = displayList.IndexOf(currentValue);
-            if (selectedIndex < 0)
-                selectedIndex = valueInList ? availableOptions.IndexOf(currentValue) + (valueInList ? (displayList.Count - availableOptions.Count) : 0) : 0;
+            string option = availableOptions[i];
+            displayList.Add(option);
+
+            if (option == currentValue)
+                selectedIndex = i + 1; // +1 because <None> is at index 0
+        }
+
+        // If value not found, show missing
+        if (!string.IsNullOrEmpty(currentValue) && selectedIndex == 0)
+        {
+            displayList.Insert(1, $"❌ {currentValue} (missing)");
+            selectedIndex = 1;
         }
 
         int newIndex = EditorGUI.Popup(position, label.text, selectedIndex, displayList.ToArray());
 
+        // Apply value if changed
         if (newIndex != selectedIndex)
         {
-            if (displayList[newIndex] == "────────")
+            string selectedValue = displayList[newIndex];
+
+            if (selectedValue.StartsWith("❌"))
                 return;
 
-            if (!valueInList && newIndex == 0)
-                return;
-
-            property.stringValue = displayList[newIndex].Replace("❌ ", "").Replace(" (missing)", "");
+            property.stringValue = (newIndex == 0) ? "" : selectedValue;
         }
     }
 }
