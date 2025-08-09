@@ -83,7 +83,7 @@ namespace SAS.Utilities.TagSystem
             return value;
         }
 
-        internal bool TryGet(Type type, out object instance, Tag tag = Tag.None)
+        public bool TryGet(Type type, out object instance, Tag tag = Tag.None)
         {
             var key = GetKey(type, tag);
             if (!_cachedBindings.TryGetValue(key, out instance))
