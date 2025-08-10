@@ -14,8 +14,7 @@ namespace SAS.Utilities.TagSystem
         [SerializeField]
         private Scope m_Scope = Scope.SceneLevel;
 
-        [SerializeField] private Binder m_Binder;
-        public Binder Binder => m_Binder;
+        [SerializeField] private Binder m_Binder; 
         public bool IsCrossContextBinder => m_Scope == Scope.ProjectLevel;
         Scope IContextBinder.BinderScope => m_Scope;
 
