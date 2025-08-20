@@ -108,7 +108,6 @@ namespace SAS.Utilities.TagSystem
             if (!_cachedBindings.TryGetValue(key, out instance))
             {
                 instance = null;
-                Debug.LogError($"Required service of type {type.Name} with tag {tag} is not found");
                 return false;
             }
 
@@ -144,11 +143,9 @@ namespace SAS.Utilities.TagSystem
                 var potentialBinding = Array.Find(m_Bindings, ele => ele.InterfaceType.Equals(type) && ele.Tag == tag);
 
                 if (potentialBinding != null && potentialBinding.IsPlatformExcluded())
-                {
                     Debug.LogError($"Binding for interface type '{type.FullName}' with tag '{tag}' exists but is excluded for the current platform: {Application.platform}.");
-                }
                 else
-                    Debug.LogError($"No binding found for interface type '{type.FullName}' with tag '{tag}'.");
+                    Debug.Log($"No binding found for interface type '{type.FullName}' with tag '{tag}'.");
 
                 return null;
             }
