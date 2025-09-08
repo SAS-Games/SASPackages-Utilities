@@ -10,7 +10,7 @@ public class OnTriggerHandler : MonoBehaviour
     [SerializeField] private UnityEvent<GameObject> m_OnTriggerExitAction;
 
     public UnityEvent<GameObject> OnTriggerEnterAction => m_OnTriggerEnterAction;
-    public; UnityEvent<GameObject> OnTriggerExitAction => m_OnTriggerExitAction;
+    public UnityEvent<GameObject> OnTriggerExitAction => m_OnTriggerExitAction;
 
     private void OnTriggerEnter(Collider other)
     {
