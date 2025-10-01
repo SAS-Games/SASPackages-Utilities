@@ -1,139 +1,132 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using UnityEngine;
 
 public static class FlexPrefs
 {
     private static ISaveSystem _saveSystem;
-    private static int _userId;
-    private static Dictionary<string, object> _cache = new Dictionary<string, object>();
-    private static volatile bool _isSaving = false;
-    private static bool _isDirty = true;
-    private static TaskCompletionSource<bool> _saveTaskCompletion = new TaskCompletionSource<bool>();
-    private const string FileName = "FlexPrefsData";
+    private static int _activeUserId;
+
+    // Per-user, per-file caches
+    private static readonly Dictionary<(int userId, string file), Dictionary<string, object>> _caches = new();
+    private static readonly Dictionary<(int userId, string file), bool> _isDirty = new();
+    private static readonly Dictionary<(int userId, string file), bool> _isSaving = new();
+    private static readonly Dictionary<(int userId, string file), TaskCompletionSource<bool>> _saveTasks = new();
+
+    private const string DefaultFile = "FlexPrefsData";
     private const string DirName = "FlexPrefsDataDir";
 
-    /// <summary>
-    /// Initializes FlexPrefs with the specified save system and user ID.
-    /// This must be called before using any other methods in FlexPrefs.
-    /// </summary>
-    /// <param name="saveSystem">The save system to use for data persistence.</param>
-    /// <param name="userId">The user identifier for saving/loading data. Defaults to 0.</param>
-    public static async Task Initialize(ISaveSystem saveSystem, int userId)
+    public static void Initialize(ISaveSystem saveSystem, int defaultUserId = 0)
     {
         _saveSystem = saveSystem;
-        _userId = userId;
-        _cache = await LoadData();
+        _activeUserId = defaultUserId;
     }
 
-    /// <summary>
-    /// Loads the saved data into the cache asynchronously.
-    /// If no data is found, a new empty dictionary is returned.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous load operation.
-    /// The result contains the loaded data or an empty dictionary if no data is found.</returns>
-    private static async Task<Dictionary<string, object>> LoadData()
+    public static void SetActiveUser(int userId) => _activeUserId = userId;
+
+    private static async Task EnsureCache(int userId, string fileName)
     {
-        var data = await _saveSystem.Load<Dictionary<string, object>>(_userId, DirName, FileName);
-        return data ?? new Dictionary<string, object>();
-    }
+        var key = (userId, fileName);
 
-    /// <summary>
-    /// Gets the value associated with the specified key.
-    /// If the key does not exist, the default value is returned.
-    /// </summary>
-    /// <typeparam name="T">The type of the value to retrieve.</typeparam>
-    /// <param name="key">The key associated with the value.</param>
-    /// <param name="defaultValue">The default value to return if the key does not exist. Optional.</param>
-    /// <returns>The value of type T if the key exists, otherwise the default value.</returns>
-    public static T Get<T>(string key, T defaultValue = default)
-    {
-        Debug.Assert(_saveSystem != null, "FlexPrefs not initialized. Call FlexPrefs.Initialize() first.");
-        return _cache.TryGetValue(key, out var value) && value is T typedValue ? typedValue : defaultValue;
-    }
-
-    /// <summary>
-    /// Sets the value for the specified key.
-    /// If the key already exists, the value is updated.
-    /// </summary>
-    /// <typeparam name="T">The type of the value to set.</typeparam>
-    /// <param name="key">The key to associate with the value.</param>
-    /// <param name="value">The value to store.</param>
-    public static void Set<T>(string key, T value)
-    {
-        Debug.Assert(_saveSystem != null, "FlexPrefs not initialized. Call FlexPrefs.Initialize() first.");
-        _cache[key] = value;
-        _isDirty = true;
-    }
-
-    /// <summary>
-    /// Saves the current state of the cache to the persistent storage asynchronously.
-    /// Handles concurrent save requests gracefully by queuing them.
-    /// </summary>
-    public static async Task Save()
-    {
-        Debug.Assert(_saveSystem != null, "FlexPrefs not initialized. Call FlexPrefs.Initialize() first.");
-
-        while (_isSaving)
-            await _saveTaskCompletion.Task;
-
-        if (!_isDirty)
+        if (_caches.ContainsKey(key))
             return;
 
-        _isSaving = true;
-        _saveTaskCompletion = new TaskCompletionSource<bool>();
+        var data = await _saveSystem.Load<Dictionary<string, object>>(userId, DirName, fileName);
+        _caches[key] = data ?? new Dictionary<string, object>();
+
+        _isDirty[key] = false;
+        _isSaving[key] = false;
+
+        var tcs = new TaskCompletionSource<bool>();
+        tcs.SetResult(true);
+        _saveTasks[key] = tcs;
+    }
+    
+    public static T Get<T>(int userId, string key, T defaultValue = default, string fileName = DefaultFile)
+    {
+        var cacheKey = (userId, fileName);
+
+        if (!_caches.ContainsKey(cacheKey))
+            EnsureCache(userId, fileName).GetAwaiter().GetResult();
+
+        var cache = _caches[cacheKey];
+        return cache.TryGetValue(key, out var value) && value is T typedValue
+            ? typedValue : defaultValue;
+    }
+
+    public static void Set<T>(int userId, string key, T value, string fileName = DefaultFile)
+    {
+        var cacheKey = (userId, fileName);
+
+        if (!_caches.ContainsKey(cacheKey))
+            EnsureCache(userId, fileName).GetAwaiter().GetResult();
+
+        var cache = _caches[cacheKey];
+        cache[key] = value;
+        _isDirty[cacheKey] = true;
+    }
+    
+    public static async Task Save(int userId, string fileName = DefaultFile)
+    {
+        var cacheKey = (userId, fileName);
+
+        if (!_caches.ContainsKey(cacheKey))
+            await EnsureCache(userId, fileName);
+
+        while (_isSaving[cacheKey])
+            await _saveTasks[cacheKey].Task;
+
+        if (!_isDirty[cacheKey])
+            return;
+
+        _isSaving[cacheKey] = true;
+        _saveTasks[cacheKey] = new TaskCompletionSource<bool>();
 
         try
         {
             do
             {
-                _isDirty = false;
-                await _saveSystem.Save(_userId, DirName, FileName, _cache);
-                // Re-check if new changes occurred during the save process
-            } while (_isDirty);
+                _isDirty[cacheKey] = false;
+                await _saveSystem.Save(userId, DirName, fileName, _caches[cacheKey]);
+            }
+            while (_isDirty[cacheKey]);
         }
         finally
         {
-            _isSaving = false;
-            _saveTaskCompletion.SetResult(true);
+            _isSaving[cacheKey] = false;
+            _saveTasks[cacheKey].SetResult(true);
         }
     }
 
-
-    /// <summary>
-    /// Checks if a specific key exists in the cache.
-    /// </summary>
-    /// <param name="key">The key to check for existence.</param>
-    /// <returns>True if the key exists, otherwise false.</returns>
-    public static bool HasKey(string key)
+    public static async Task SaveAll()
     {
-        Debug.Assert(_saveSystem != null, "FlexPrefs not initialized. Call FlexPrefs.Initialize() first.");
-        return _cache.ContainsKey(key);
-    }
+        var tasks = new List<Task>();
 
-    /// <summary>
-    /// Clears the value associated with the specified key.
-    /// If the key exists, it is removed from the cache.
-    /// </summary>
-    /// <param name="key">The key to remove from the cache.</param>
-    public static void ClearKey(string key)
-    {
-        Debug.Assert(_saveSystem != null, "FlexPrefs not initialized. Call FlexPrefs.Initialize() first.");
-
-        if (_cache.Remove(key))
+        foreach (var entry in _caches.Keys)
         {
-            _isDirty = true;
+            tasks.Add(Save(entry.userId, entry.file));
         }
+
+        await Task.WhenAll(tasks);
+    }
+    
+    public static T Get<T>(string key, T defaultValue = default, string fileName = DefaultFile)
+        => Get(_activeUserId, key, defaultValue, fileName);
+
+    public static void Set<T>(string key, T value, string fileName = DefaultFile)
+        => Set(_activeUserId, key, value, fileName);
+
+    public static Task Save(string fileName = DefaultFile)
+        => Save(_activeUserId, fileName);
+    public static bool HasKey(int userId, string key, string fileName = DefaultFile)
+    {
+        var cacheKey = (userId, fileName);
+
+        if (!_caches.ContainsKey(cacheKey))
+            EnsureCache(userId, fileName).GetAwaiter().GetResult();
+
+        return _caches[cacheKey].ContainsKey(key);
     }
 
-    /// <summary>
-    /// Clears all keys and values from the cache.
-    /// This also marks the state as dirty, which triggers saving the cleared state.
-    /// </summary>
-    public static void Clear()
-    {
-        Debug.Assert(_saveSystem != null, "FlexPrefs not initialized. Call FlexPrefs.Initialize() first.");
-        _cache.Clear();
-        _isDirty = true;
-    }
+    public static bool HasKey(string key, string fileName = DefaultFile)
+        => HasKey(_activeUserId, key, fileName);
 }

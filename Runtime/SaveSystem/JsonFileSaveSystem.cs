@@ -1,48 +1,40 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SAS.Utilities.TagSystem;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using SAS.Utilities.TagSystem;
 using UnityEngine;
 
 public class JsonFileSaveSystem : ISaveSystem
 {
     private readonly string rootDir = Application.persistentDataPath;
 
-    public JsonFileSaveSystem(IContextBinder _)
-    {
-
-    }
+    public JsonFileSaveSystem(IContextBinder _) { }
 
     async Task<T> ISaveSystem.Load<T>(int userId, string dirName, string fileName)
     {
         var filePath = Path.Combine(rootDir, dirName, userId.ToString(), fileName + ".json");
 
-        if (File.Exists(filePath))
+        if (!File.Exists(filePath))
         {
-            string json = string.Empty;
-            try
-            {
-                json = await File.ReadAllTextAsync(filePath);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
-
-            if (!string.IsNullOrWhiteSpace(json))
-            {
-
-                T data = JsonConvert.DeserializeObject<T>(json, JsonSettings.Settings);
-                if (data != null)
-                    return data;
-            }
+            Debug.LogWarning($"Save file not found: {filePath}");
+            return default;
         }
 
-        Debug.LogWarning($"File not found or empty: {filePath}");
-        return new T(); // This now works because of the where T : new() constraint
+        try
+        {
+            string json = await File.ReadAllTextAsync(filePath);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                return JsonConvert.DeserializeObject<T>(json, JsonSettings.Settings);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Failed to load/deserialize file {filePath}: {ex}");
+        }
+
+        return default;
     }
 
     async Task ISaveSystem.Save<T>(int userId, string dirName, string fileName, T data)
@@ -54,14 +46,13 @@ public class JsonFileSaveSystem : ISaveSystem
                 Directory.CreateDirectory(directoryPath);
 
             string filePath = Path.Combine(directoryPath, fileName + ".json");
-           
             string json = JsonConvert.SerializeObject(data, JsonSettings.Settings);
 
             await File.WriteAllTextAsync(filePath, json);
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Failed to save file: {ex.Message}");
+            Debug.LogError($"Failed to save file for {dirName}/{fileName}: {ex}");
         }
     }
 }

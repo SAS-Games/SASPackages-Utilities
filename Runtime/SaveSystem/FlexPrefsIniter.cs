@@ -3,25 +3,38 @@ using UnityEngine;
 
 public class FlexPrefsIniter : MonoBehaviour
 {
-    [Inject] ISaveSystem _flexPrefsSaveSytem;
+    [Inject] ISaveSystem _flexPrefsSaveSystem;
     [Inject] IUserModel _userModel;
 
-    async void Start()
+    void Start()
     {
         this.InjectFieldBindings();
-        await FlexPrefs.Initialize(_flexPrefsSaveSytem, _userModel.GetActiveUserId());
+        FlexPrefs.Initialize(_flexPrefsSaveSystem, _userModel.GetActiveUserId());
     }
 
     private void OnApplicationQuit()
     {
-        _ = FlexPrefs.Save();
+        // Block until saves are finished (safe for all platforms)
+        FlexPrefs.SaveAll().GetAwaiter().GetResult();
     }
 
 #if UNITY_PS5
     private void OnApplicationFocus(bool focus)
     {
         if (!focus)
-            _ = FlexPrefs.Save();
+            FlexPrefs.SaveAll().GetAwaiter().GetResult();
+    }
+
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus)
+            FlexPrefs.SaveAll().GetAwaiter().GetResult();
+    }
+#else
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus)
+            FlexPrefs.SaveAll().GetAwaiter().GetResult();
     }
 #endif
 }
