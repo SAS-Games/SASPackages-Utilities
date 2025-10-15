@@ -3,38 +3,48 @@ using UnityEngine;
 
 public class FlexPrefsIniter : MonoBehaviour
 {
-    [Inject] ISaveSystem _flexPrefsSaveSystem;
-    [Inject] IUserModel _userModel;
+    [Inject] private ISaveSystem _flexPrefsSaveSystem;
+    [Inject] private IUserModel _userModel;
 
-    void Start()
+    private async void Start()
     {
         this.InjectFieldBindings();
-        FlexPrefs.Initialize(_flexPrefsSaveSystem, _userModel.GetActiveUserId());
+
+        int userId = _userModel.GetActiveUserId();
+        FlexPrefs.Initialize(_flexPrefsSaveSystem, userId);
+
+        if (!FlexPrefs.IsUserDataLoaded(userId))
+        {
+            Debug.Log("[FlexPrefsIniter] Preloading user data...");
+            await FlexPrefs.PreloadUserAsync(userId);
+        }
+
+        Debug.Log($"[FlexPrefsIniter] FlexPrefs ready for user {userId}");
     }
 
-    private void OnApplicationQuit()
+    private async void OnApplicationQuit()
     {
-        // Block until saves are finished (safe for all platforms)
-        FlexPrefs.SaveAll().GetAwaiter().GetResult();
+        await FlexPrefs.SaveAll();
+        Debug.Log("[FlexPrefsIniter] Saved all data on quit.");
     }
 
 #if UNITY_PS5
-    private void OnApplicationFocus(bool focus)
+    private async void OnApplicationFocus(bool focus)
     {
         if (!focus)
-            FlexPrefs.SaveAll().GetAwaiter().GetResult();
-    }
-
-    private void OnApplicationPause(bool pauseStatus)
-    {
-        if (pauseStatus)
-            FlexPrefs.SaveAll().GetAwaiter().GetResult();
+        {
+            await FlexPrefs.SaveAll();
+            Debug.Log("[FlexPrefsIniter] Saved all data on focus lost (PS5).");
+        }
     }
 #else
-    private void OnApplicationPause(bool pauseStatus)
+    private async void OnApplicationPause(bool pauseStatus)
     {
         if (pauseStatus)
-            FlexPrefs.SaveAll().GetAwaiter().GetResult();
+        {
+            await FlexPrefs.SaveAll();
+            Debug.Log("[FlexPrefsIniter] Saved all data on pause.");
+        }
     }
 #endif
 }
