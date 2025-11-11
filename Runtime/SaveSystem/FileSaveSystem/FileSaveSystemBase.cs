@@ -1,4 +1,3 @@
-using SAS.Utilities.TagSystem;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -49,12 +48,12 @@ public abstract class FileSaveSystemBase : ISaveSystem
         }
     }
 
-    protected string GetFilePath(int userId, string dirName, string fileName)
+    private string GetFilePath(int userId, string dirName, string fileName)
     {
         return Path.Combine(_rootDir, dirName, userId.ToString(), fileName + _serializer.FileExtension);
     }
 
-    protected void EnsureDirectoryExists(string filePath)
+    private void EnsureDirectoryExists(string filePath)
     {
         var directoryPath = Path.GetDirectoryName(filePath);
         if (!Directory.Exists(directoryPath))
