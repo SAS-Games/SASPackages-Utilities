@@ -6,7 +6,7 @@ public class FlexPrefsIniter : MonoBehaviour
     [Inject] private ISaveSystem _flexPrefsSaveSystem;
     [Inject] private IUserModel _userModel;
 
-    private async void Start()
+    private async void Awake()
     {
         this.InjectFieldBindings();
 
