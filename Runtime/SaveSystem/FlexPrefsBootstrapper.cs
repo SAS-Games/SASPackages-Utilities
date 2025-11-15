@@ -28,6 +28,8 @@ public class FlexPrefsBootstrapper : MonoBehaviour
     public async void Awake()
     {
         this.InjectFieldBindings();
+        if(_userModel == null || _flexPrefsSaveSystem == null)
+            return;
 
         int userId = _userModel.GetActiveUserId();
         FlexPrefs.Initialize(_flexPrefsSaveSystem, userId);

@@ -20,16 +20,16 @@ public static class FlexPrefs
     private class CacheEntry
     {
         public Dictionary<string, object> Data = new Dictionary<string, object>();
-        public int Version = 0;          // increments on every mutation
-        public bool IsDirty = false;     // set when mutated, cleared when snapshot is taken
-        public bool IsSaving = false;    // true while awaiting save completion (if awaitable)
+        public int Version = 0; // increments on every mutation
+        public bool IsDirty = false; // set when mutated, cleared when snapshot is taken
+        public bool IsSaving = false; // true while awaiting save completion (if awaitable)
     }
 
     private static readonly Dictionary<(int userId, string file), CacheEntry> _entries = new();
 
     private const string DefaultFile = "FlexPrefsData";
     private const string DirName = "FlexPrefsDataDir";
-    
+
     public static void Initialize(ISaveSystem saveSystem, int defaultUserId = 0)
     {
         _saveSystem = saveSystem ?? throw new ArgumentNullException(nameof(saveSystem));
@@ -37,7 +37,7 @@ public static class FlexPrefs
     }
 
     public static void SetActiveUser(int userId) => _activeUserId = userId;
-    
+
     /// <summary>
     /// Preloads the file for a user. Must be called before using Get/Set for that user+file.
     /// </summary>
@@ -49,7 +49,8 @@ public static class FlexPrefs
 
         try
         {
-            var data = await _saveSystem.Load<Dictionary<string, object>>(userId, DirName, fileName).ConfigureAwait(false)
+            var data = await _saveSystem.Load<Dictionary<string, object>>(userId, DirName, fileName)
+                           .ConfigureAwait(false)
                        ?? new Dictionary<string, object>();
 
             var entry = new CacheEntry
@@ -72,7 +73,7 @@ public static class FlexPrefs
 
     public static Task PreloadActiveUserAsync(string fileName = DefaultFile)
         => PreloadUserAsync(_activeUserId, fileName);
-    
+
     public static T Get<T>(int userId, string key, T defaultValue = default, string fileName = DefaultFile)
     {
         var cacheKey = (userId, fileName);
@@ -96,8 +97,8 @@ public static class FlexPrefs
         }
 
         entry.Data[key] = value;
-        entry.Version++;            // mutation
-        entry.IsDirty = true;       // mark dirty so next save will persist
+        entry.Version++; // mutation
+        entry.IsDirty = true; // mark dirty so next save will persist
     }
 
     // convenience for active user
@@ -106,7 +107,7 @@ public static class FlexPrefs
 
     public static void Set<T>(string key, T value, string fileName = DefaultFile)
         => Set(_activeUserId, key, value, fileName);
-    
+
     public static void DeleteKey(int userId, string key, string fileName = DefaultFile)
     {
         var cacheKey = (userId, fileName);
@@ -137,7 +138,7 @@ public static class FlexPrefs
 
     public static void Clear(string fileName = DefaultFile)
         => Clear(_activeUserId, fileName);
-    
+
     /// <summary>
     /// Creates a snapshot of the current cache and asks the save system to persist it.
     /// This method is very fast (snapshot is a shallow copy) and non-blocking.
@@ -148,10 +149,12 @@ public static class FlexPrefs
     {
         EnsureInitialized();
         var cacheKey = (userId, fileName);
-        if (!_entries.TryGetValue(cacheKey, out var entry)) return Task.CompletedTask;
+        if (!_entries.TryGetValue(cacheKey, out var entry))
+            return Task.CompletedTask;
 
         // If nothing changed, skip
-        if (!entry.IsDirty) return Task.CompletedTask;
+        if (!entry.IsDirty)
+            return Task.CompletedTask;
 
         // Snapshot and capture version — shallow copy on main thread (cheap)
         var snapshot = new Dictionary<string, object>(entry.Data);
@@ -215,7 +218,7 @@ public static class FlexPrefs
             tasks.Add(Save(key.userId, key.file));
         await Task.WhenAll(tasks).ConfigureAwait(false);
     }
-    
+
     public static bool IsUserDataLoaded(int userId, string fileName = DefaultFile)
         => _entries.ContainsKey((userId, fileName));
 
@@ -230,7 +233,7 @@ public static class FlexPrefs
 
     public static bool HasKey(string key, string fileName = DefaultFile)
         => HasKey(_activeUserId, key, fileName);
-    
+
     public static void UnloadUser(int userId, string fileName = DefaultFile)
     {
         _entries.Remove((userId, fileName));
@@ -238,9 +241,11 @@ public static class FlexPrefs
 
     public static void UnloadActiveUser(string fileName = DefaultFile)
         => UnloadUser(_activeUserId, fileName);
-    
+
     private static void EnsureInitialized()
     {
-        if (_saveSystem == null) throw new InvalidOperationException("FlexPrefs not initialized. Call FlexPrefs.Initialize(saveSystem) first.");
+        if (_saveSystem == null)
+            throw new InvalidOperationException(
+                "FlexPrefs not initialized. Call FlexPrefs.Initialize(saveSystem) first.");
     }
 }
