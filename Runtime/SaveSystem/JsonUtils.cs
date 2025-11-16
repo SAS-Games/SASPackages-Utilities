@@ -12,7 +12,8 @@ public static class JsonSettings
         Converters = new List<JsonConverter>
         {
             new Vector3Converter(),
-            new QuaternionConverter()
+            new QuaternionConverter(),
+            new ColorConverter()
         }
     };
 }
@@ -65,3 +66,29 @@ public class QuaternionConverter : JsonConverter<Quaternion>
     }
 }
 
+public class ColorConverter : JsonConverter<Color>
+{
+    public override void WriteJson(JsonWriter writer, Color value, JsonSerializer serializer)
+    {
+        JObject obj = new JObject
+        {
+            { "r", value.r },
+            { "g", value.g },
+            { "b", value.b },
+            { "a", value.a }
+        };
+        obj.WriteTo(writer);
+    }
+
+    public override Color ReadJson(JsonReader reader, System.Type objectType, Color existingValue, bool hasExistingValue, JsonSerializer serializer)
+    {
+        JObject obj = JObject.Load(reader);
+
+        float r = obj["r"].Value<float>();
+        float g = obj["g"].Value<float>();
+        float b = obj["b"].Value<float>();
+        float a = obj["a"].Value<float>();
+
+        return new Color(r, g, b, a);
+    }
+}
