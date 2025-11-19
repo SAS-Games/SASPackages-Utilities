@@ -2,7 +2,10 @@ using SAS.Utilities.TagSystem;
 
 public class MessagePackFileSaveSystem : FileSaveSystemBase
 {
-    public MessagePackFileSaveSystem(IContextBinder _) : base(new MessagePackDataSerializer())
+    protected override IDataSerializer Serializer { get; }
+
+    public MessagePackFileSaveSystem(IContextBinder _) : base()
     {
+        Serializer = new MessagePackDataSerializer();
     }
 }

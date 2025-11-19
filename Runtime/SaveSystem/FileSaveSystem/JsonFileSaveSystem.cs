@@ -2,7 +2,9 @@ using SAS.Utilities.TagSystem;
 
 public class JsonFileSaveSystem : FileSaveSystemBase
 {
-    public JsonFileSaveSystem(IContextBinder _) : base(new JsonDataSerializer())
+    protected override IDataSerializer Serializer { get; }
+    public JsonFileSaveSystem(IContextBinder _) : base()
     {
+        Serializer = new JsonDataSerializer();
     }
 }
